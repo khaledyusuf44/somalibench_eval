@@ -1,0 +1,30 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Local data — never push raw model responses (may include harmful generations
+# where models complied; aggregate metrics are what gets released)
+data/responses/
+data/classifications/
+data/spot_checks/
+
+# Public-safe outputs are committed (these are aggregate numbers, not raw text)
+!data/results/
+!data/figures/
+
+# Local model weights / caches
+models/
+*.gguf
+
+# Logs
+*.log
+
+# Secrets
+.env

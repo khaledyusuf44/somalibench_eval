@@ -1,0 +1,29 @@
+# somalibench_eval — pinned dependencies
+#
+# Install:
+#   python3 -m venv .venv && source .venv/bin/activate
+#   pip install -r requirements.txt
+
+# Ollama client (local model inference)
+ollama>=0.3.0
+
+# Anthropic API (LLM-as-judge)
+anthropic>=0.40.0
+
+# Data + analysis
+pandas>=2.0
+pyarrow>=14.0
+numpy>=1.26
+scipy>=1.11
+
+# HuggingFace datasets (to load SomaliBench v0)
+datasets>=2.19.0
+
+# Plotting (paper figures)
+matplotlib>=3.8
+seaborn>=0.13
+
+# Progress + utilities
+tqdm>=4.66
+pyyaml>=6.0
+python-dotenv>=1.0
