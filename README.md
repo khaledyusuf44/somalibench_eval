@@ -1,5 +1,12 @@
 # somalibench_eval — Cross-lingual refusal study across four open-weight LLMs
 
+[![Status: scaffold](https://img.shields.io/badge/Status-scaffold%20v0.1.0-orange.svg)](https://github.com/khaledyusuf44/somalibench_eval/releases/tag/v0.1.0-scaffold)
+[![Companion: SomaliBench v0](https://img.shields.io/badge/🤗%20Benchmark-khaledyusuf44%2Fsomalibench--v0-yellow)](https://huggingface.co/datasets/khaledyusuf44/somalibench-v0)
+[![Companion paper: SomaliWeb v1](https://img.shields.io/badge/arXiv-2605.18232-b31b1b.svg)](https://arxiv.org/abs/2605.18232)
+[![Code License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](LICENSE)
+[![Data License: CC-BY-NC 4.0](https://img.shields.io/badge/Data%20License-CC--BY--NC%204.0-green.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB.svg)](https://www.python.org/)
+
 **Companion evaluation study to [SomaliBench v0](https://github.com/khaledyusuf44/somalibench_v0).**
 
 Runs SomaliBench v0 (100 harmful prompts × en/so = 200 records) against four open-weight
