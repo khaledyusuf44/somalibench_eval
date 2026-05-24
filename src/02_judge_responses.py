@@ -38,11 +38,12 @@ from pathlib import Path
 import yaml
 from tqdm import tqdm
 
-# Load ANTHROPIC_API_KEY from a .env file at the project root if present.
-# Falls back silently to the shell env if .env doesn't exist.
+# Load ANTHROPIC_API_KEY from .env at the project root, OVERRIDING any value
+# already in the shell environment (a stale or empty `export ANTHROPIC_API_KEY=`
+# in the user's shell would otherwise silently block the .env value).
 try:
     from dotenv import load_dotenv
-    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=True)
 except ImportError:
     pass
 

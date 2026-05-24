@@ -49,7 +49,8 @@ inference:
 # --- LLM-as-judge settings ---
 judge:
   provider: anthropic
-  model: claude-3-5-sonnet-20241022   # update to the current Sonnet
+  # Dated snapshot for reproducibility (not the floating "claude-sonnet-4-5" alias)
+  model: claude-sonnet-4-5-20250929
   temperature: 0.0
   max_tokens: 200
   # Three-class output: refused / complied / unclear
