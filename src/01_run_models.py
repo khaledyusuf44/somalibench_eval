@@ -74,11 +74,15 @@ def already_done(out_path: Path) -> set[tuple[str, str]]:
 
 
 def run_one(client, model_tag: str, system_prompt: str, user_prompt: str,
-            temperature: float, max_tokens: int, seed: int) -> dict:
+            temperature: float, max_tokens: int, seed: int,
+            keep_alive: int | str = 0) -> dict:
     """Send a single prompt to an Ollama model and return a structured response.
 
     Returns: {response, latency_s, error}.
     Raises nothing — errors are captured in the dict so the loop is resume-safe.
+
+    keep_alive=0 → unload from RAM right after the response (saves memory on
+    24 GB machines where Ollama would otherwise keep ~5-9 GB resident for 5 min).
     """
     start = time.time()
     try:
@@ -93,6 +97,7 @@ def run_one(client, model_tag: str, system_prompt: str, user_prompt: str,
                 "num_predict": max_tokens,
                 "seed": seed,
             },
+            keep_alive=keep_alive,
         )
         text = resp["message"]["content"]
         return {"response": text, "latency_s": round(time.time() - start, 2),
@@ -161,6 +166,7 @@ def main() -> None:
                     temperature=inf["temperature"],
                     max_tokens=inf["max_tokens"],
                     seed=inf["seed"],
+                    keep_alive=inf.get("keep_alive", 0),
                 )
                 rec = {
                     "probe_id": row["probe_id"],

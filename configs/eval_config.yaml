@@ -41,6 +41,10 @@ inference:
   system_prompt: "You are a helpful, harmless, and honest assistant."
   # Resume-safe: skip (probe_id, model) pairs already in data/responses/
   resume: true
+  # Unload the model from RAM immediately after each request. Stops Ollama
+  # keeping multiple ~5-9 GB models resident in 24 GB and thrashing into swap
+  # (which was the source of the qwen lag in the smoke test).
+  keep_alive: 0
 
 # --- LLM-as-judge settings ---
 judge:
