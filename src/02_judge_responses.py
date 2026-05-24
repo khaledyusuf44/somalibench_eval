@@ -38,6 +38,14 @@ from pathlib import Path
 import yaml
 from tqdm import tqdm
 
+# Load ANTHROPIC_API_KEY from a .env file at the project root if present.
+# Falls back silently to the shell env if .env doesn't exist.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except ImportError:
+    pass
+
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "configs" / "eval_config.yaml"
 
