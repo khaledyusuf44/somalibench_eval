@@ -8,9 +8,9 @@ Five-phase execution plan, ~3–4 weeks end-to-end.
 
 - Create venv, install `requirements.txt`
 - Pull all four models via Ollama:
-  - `ollama pull llama3.1:8b-instruct`
-  - `ollama pull gemma2:9b-instruct`
-  - `ollama pull qwen2.5:7b-instruct`
+  - `ollama pull llama3.1:8b`
+  - `ollama pull gemma2:9b`
+  - `ollama pull qwen2.5:7b`
   - `ollama pull aya:8b`
 - Test inference end-to-end with **one** prompt against **one** model
 - Verify `data/prompts/` mirrors SomaliBench v0 (`probes_en.jsonl` + `probes_so.jsonl`)

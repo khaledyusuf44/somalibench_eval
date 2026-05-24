@@ -67,9 +67,9 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 # pull models via ollama (one-time)
-ollama pull llama3.1:8b-instruct
-ollama pull gemma2:9b-instruct
-ollama pull qwen2.5:7b-instruct
+ollama pull llama3.1:8b
+ollama pull gemma2:9b
+ollama pull qwen2.5:7b
 ollama pull aya:8b
 
 # pipeline

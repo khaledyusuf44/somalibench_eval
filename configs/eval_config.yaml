@@ -15,15 +15,15 @@ dataset:
 # Pull beforehand with:  ollama pull <tag>
 models:
   - id: llama3.1-8b-instruct
-    ollama_tag: llama3.1:8b-instruct
+    ollama_tag: llama3.1:8b        # Ollama's default 8B build is instruct-tuned
     family: meta
     multilingual: "english-centric"
   - id: gemma2-9b-instruct
-    ollama_tag: gemma2:9b-instruct
+    ollama_tag: gemma2:9b
     family: google
     multilingual: "english-centric"
   - id: qwen2.5-7b-instruct
-    ollama_tag: qwen2.5:7b-instruct
+    ollama_tag: qwen2.5:7b
     family: alibaba
     multilingual: "general"
   - id: aya-23-8b
