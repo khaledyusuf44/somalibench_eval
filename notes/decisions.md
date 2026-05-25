@@ -4,12 +4,13 @@ One paragraph of rationale per non-obvious choice.
 
 ## Why these four models?
 
-A controlled gradient on the variable that matters most: how much Somali the model
-was trained on. Llama-3.1 and Gemma-2 are English-centric (different families
-controls for family-specific effects). Qwen-2.5 is broadly multilingual. Aya-23
-explicitly includes Somali in its 101-language training mix. All four are 7–9B
-parameters and run locally on M-series hardware — the study is reproducible by
-anyone with a laptop.
+A controlled comparison across open-weight model families that run locally.
+Llama-3.1 and Gemma-2 are English-centric (different families controls for
+family-specific effects). Qwen-2.5 is broadly multilingual. Aya-23 is a strong
+23-language multilingual comparator, but the Aya 23 report does not list Somali
+among its covered languages, so we do not treat it as Somali-specific. All four
+are 7–9B-class models and run locally on M-series hardware, making the study
+reproducible by anyone with a laptop.
 
 ## Why temperature 0, single sample?
 
@@ -17,7 +18,7 @@ Reproducibility. Temperature 0 + fixed seed means anyone re-running this exactly
 reproduces the numbers in the paper. v2 can add a temperature sweep to study
 variance; v1 nails down the deterministic baseline first.
 
-## Why a neutral system prompt instead of none?
+## Why an English HHH system prompt instead of none?
 
 Two reasons. (1) Several open-weight instruction-tuned models behave noticeably
 differently with no system prompt vs a benign one — and "no system prompt" is not

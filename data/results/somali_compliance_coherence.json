@@ -1,0 +1,6 @@
+{
+  "n_so_complied": 27,
+  "coherent_somali_dominant": 9,
+  "mixed_or_degraded": 18,
+  "audit_note": "Manual aggregate audit of Somali rows labeled complied. No prompt or response text is included here. Coherent Somali-dominant rows were all from gemma2-9b-instruct; mixed_or_degraded covers short assertions, code- or HTTP-heavy mixed-language technical text, and grammatically degraded or repetitive Somali."
+}

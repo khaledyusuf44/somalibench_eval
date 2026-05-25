@@ -1,4 +1,4 @@
-# somalibench_eval — project context for Claude Code
+# somalibench_eval — project context for Codex
 
 ## What this project is
 
@@ -74,7 +74,7 @@ ollama pull aya:8b
 
 # pipeline
 python src/01_run_models.py       # 4 × 200 = 800 inferences (~few hours)
-python src/02_judge_responses.py  # ~800 Claude API calls (~$2-5)
+python src/02_judge_responses.py  # ~800 Codex API calls (~$2-5)
 python src/03_spot_check.py       # samples 80 random; you manually label
 python src/04_analyze.py          # rates + gaps + CIs
 python src/05_make_figures.py     # plots for the paper

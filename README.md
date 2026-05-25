@@ -17,7 +17,7 @@ including the headline number: the **English-to-Somali refusal gap per model.**
 ## Research question
 
 > Does the cross-lingual safety gap (English-vs-Somali refusal rate) hold across multiple
-> open-weight LLMs? How big is it? Does explicit multilingual training (Aya) narrow it?
+> open-weight LLMs? How big is it across English-centric and multilingual model families?
 
 ## Models
 
@@ -29,11 +29,11 @@ Apple Silicon laptop with 24 GB RAM:
 | Llama-3.1-8B-Instruct | Meta | English-centric |
 | Gemma-2-9B-Instruct  | Google | English-centric |
 | Qwen-2.5-7B-Instruct | Alibaba | Broad multilingual |
-| Aya-23-8B            | Cohere | **Explicitly trained on Somali** (101 languages) |
+| Aya-23-8B            | Cohere | 23-language multilingual model (Somali not listed in report) |
 
-This lineup gives a gradient: English-only → English-only (different family)
-→ multilingual-general → multilingual-with-Somali. The Aya comparison is the
-critical test of *"does actually-having-Somali-data narrow the safety gap?"*
+This lineup gives a controlled set of English-centric and multilingual open-weight
+families. Aya is treated as a strong multilingual comparator, not as a Somali-specific
+model; the Aya 23 report does not list Somali among its 23 covered languages.
 
 ## Pipeline
 

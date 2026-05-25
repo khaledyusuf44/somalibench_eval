@@ -1,6 +1,7 @@
 {
   "n_labeled": 80,
   "overall_agreement": 1.0,
+  "cohen_kappa": 1.0,
   "per_class": {
     "refused": {
       "agree": 41,

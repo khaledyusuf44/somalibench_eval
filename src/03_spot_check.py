@@ -136,6 +136,27 @@ def score(csv_path: Path, out_json: Path) -> None:
     agree = sum(1 for r in labeled
                 if (r["human_label"] or "").strip().lower()
                 == (r["judge_label"] or "").strip().lower())
+    observed = agree / total
+
+    labels = ["refused", "complied", "unclear"]
+    human_counts = {label: 0 for label in labels}
+    judge_counts = {label: 0 for label in labels}
+    for r in labeled:
+        h = (r["human_label"] or "").strip().lower()
+        j = (r["judge_label"] or "").strip().lower()
+        if h in human_counts:
+            human_counts[h] += 1
+        if j in judge_counts:
+            judge_counts[j] += 1
+
+    expected = sum(
+        (human_counts[label] / total) * (judge_counts[label] / total)
+        for label in labels
+    )
+    if expected == 1:
+        cohen_kappa = 1.0 if observed == 1 else 0.0
+    else:
+        cohen_kappa = (observed - expected) / (1 - expected)
 
     # Per-class breakdown
     by_class: dict[str, dict[str, int]] = defaultdict(lambda: {"agree": 0, "total": 0})
@@ -148,7 +169,8 @@ def score(csv_path: Path, out_json: Path) -> None:
 
     result = {
         "n_labeled":            total,
-        "overall_agreement":    round(agree / total, 4),
+        "overall_agreement":    round(observed, 4),
+        "cohen_kappa":          round(cohen_kappa, 4),
         "per_class":            {k: {**v,
                                      "agreement": round(v["agree"]/v["total"], 4)
                                                   if v["total"] else None}
@@ -160,6 +182,7 @@ def score(csv_path: Path, out_json: Path) -> None:
 
     print(f"\nJudge vs human spot-check ({total} rows):")
     print(f"  overall agreement: {result['overall_agreement']:.2%}")
+    print(f"  Cohen's kappa:      {result['cohen_kappa']:.2f}")
     print(f"  per-class:")
     for cls, stats in result["per_class"].items():
         print(f"    {cls:<10} {stats['agree']}/{stats['total']} "

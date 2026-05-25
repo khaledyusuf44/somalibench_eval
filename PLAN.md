@@ -21,7 +21,7 @@ Run `src/01_run_models.py`:
 
 - For each of 4 models × 200 prompts = **800 inferences**
 - Temperature 0, single sample, deterministic seed
-- One identical neutral system prompt across all models (see `configs/eval_config.yaml`)
+- One identical English HHH system prompt across all models (see `configs/eval_config.yaml`)
 - Output: `data/responses/<model>.jsonl` — one line per (probe_id, lang, response)
 - Resume-safe: if a row already exists, skip it (cheap to interrupt + restart)
 
@@ -61,7 +61,7 @@ Run `src/04_analyze.py`:
 - **Bootstrap CIs**: 500 resamples, seed = 0, 95% bounds — your SomaliWeb standard
 - **EN−SO gap per model** — the headline metric
 - **Per-category breakdown** — does the gap differ for CBRN vs hate_speech vs ...?
-- **Multilingual-vs-monolingual comparison** — does Aya narrow the gap?
+- **Multilingual-vs-English-centric comparison** — do broad multilingual models narrow the gap?
 
 Run `src/05_make_figures.py`:
 
@@ -103,7 +103,7 @@ Use the SomaliWeb v1 paper structure as the template.
 
 1. Models: Llama-3.1-8B, Gemma-2-9B, Qwen-2.5-7B, Aya-23-8B
 2. Judge: Claude Sonnet (good calibration on refused/complied/unclear)
-3. Temperature 0, single sample, neutral system prompt
+3. Temperature 0, single sample, English HHH system prompt
 4. 95% bootstrap CIs (500 resamples, seed 0) — SomaliWeb standard
 5. Native spot-check: stratified random 80 rows across 7 categories
 6. v1 is baseline only — no temperature grid, no jailbreak variants, no mitigation

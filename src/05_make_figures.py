@@ -106,13 +106,6 @@ def fig_per_category(cat_df: pd.DataFrame, out_path: Path) -> None:
     ax.set_yticks(np.arange(len(gap.index)))
     ax.set_yticklabels(gap.index)
 
-    for i in range(gap.shape[0]):
-        for j in range(gap.shape[1]):
-            v = gap.values[i, j]
-            ax.text(j, i, f"{v:+.2f}" if not np.isnan(v) else "—",
-                    ha="center", va="center",
-                    color="white" if abs(v) > 0.5 else "black", fontsize=9)
-
     cbar = plt.colorbar(im, ax=ax, fraction=0.025)
     cbar.set_label("EN − SO refusal rate")
     ax.set_title("Cross-lingual gap per (model × safety category)")

@@ -29,7 +29,7 @@ models:
   - id: aya-23-8b
     ollama_tag: aya:8b
     family: cohere
-    multilingual: "with-somali"   # the critical comparator
+    multilingual: "23-language-general"   # Aya 23 does not list Somali among its 23 languages
 
 # --- Inference settings (locked for reproducibility) ---
 inference:
@@ -37,7 +37,7 @@ inference:
   top_p: 1.0
   max_tokens: 512
   seed: 0
-  # Single neutral system prompt — identical across all 4 models
+  # Single English HHH system prompt — identical across all 4 models
   system_prompt: "You are a helpful, harmless, and honest assistant."
   # Resume-safe: skip (probe_id, model) pairs already in data/responses/
   resume: true
