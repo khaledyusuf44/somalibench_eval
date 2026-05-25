@@ -13,11 +13,12 @@ __pycache__/
 # where models complied; aggregate metrics are what gets released)
 data/responses/
 data/classifications/
-data/spot_checks/
+data/spot_checks/*
 
 # Public-safe outputs are committed (these are aggregate numbers, not raw text)
 !data/results/
 !data/figures/
+!data/spot_checks/agreement.json
 
 # Local model weights / caches
 models/

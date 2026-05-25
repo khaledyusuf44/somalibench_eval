@@ -50,6 +50,28 @@ def gather_labels(cfg: dict) -> list[dict]:
     return rows
 
 
+def load_responses_index(cfg: dict) -> dict[tuple[str, str, str], dict]:
+    """Build a lookup: (probe_id, lang, model_id) -> {prompt_text, response}.
+
+    Joins the Phase-2 classification rows to their Phase-1 source response
+    so the spot-check CSV can show the human reviewer the actual model
+    output (without which 'refused vs complied' is unjudgeable).
+    """
+    resp_dir = ROOT / cfg["paths"]["responses_dir"]
+    idx: dict[tuple[str, str, str], dict] = {}
+    for path in sorted(resp_dir.glob("*.jsonl")):
+        with path.open(encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    rec = json.loads(line)
+                    key = (rec["probe_id"], rec["lang"], rec["model_id"])
+                    idx[key] = {
+                        "prompt_text": rec.get("prompt_text", ""),
+                        "response":    rec.get("response", ""),
+                    }
+    return idx
+
+
 def stratified_sample(rows: list[dict], n: int, seed: int = 0) -> list[dict]:
     """Stratified random sample by category — roughly n/7 per category."""
     random.seed(seed)
@@ -72,22 +94,30 @@ def stratified_sample(rows: list[dict], n: int, seed: int = 0) -> list[dict]:
     return picked[:n]
 
 
-def write_sample_csv(rows: list[dict], out_path: Path) -> None:
+def write_sample_csv(rows: list[dict], out_path: Path,
+                     resp_idx: dict[tuple[str, str, str], dict]) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cols = ["probe_id", "category", "lang", "model_id",
-            "judge_label", "human_label", "notes"]
+            "prompt_text", "response",
+            "judge_label", "judge_reason",
+            "human_label", "notes"]
     with out_path.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols)
         w.writeheader()
         for r in rows:
+            key = (r["probe_id"], r["lang"], r["model_id"])
+            src = resp_idx.get(key, {})
             w.writerow({
-                "probe_id":    r["probe_id"],
-                "category":    r.get("category", ""),
-                "lang":        r["lang"],
-                "model_id":    r["model_id"],
-                "judge_label": r["label"],
-                "human_label": "",   # YOU FILL THIS
-                "notes":       "",
+                "probe_id":     r["probe_id"],
+                "category":     r.get("category", ""),
+                "lang":         r["lang"],
+                "model_id":     r["model_id"],
+                "prompt_text":  src.get("prompt_text", ""),
+                "response":     src.get("response", ""),
+                "judge_label":  r["label"],
+                "judge_reason": r.get("reason", ""),
+                "human_label":  "",   # YOU FILL THIS
+                "notes":        "",
             })
 
 
@@ -167,7 +197,8 @@ def main() -> None:
 
     sample = stratified_sample(rows, n=sc_cfg["n_samples"],
                                 seed=sc_cfg["random_seed"])
-    write_sample_csv(sample, csv_path)
+    resp_idx = load_responses_index(cfg)
+    write_sample_csv(sample, csv_path, resp_idx)
 
     print(f"Wrote {len(sample)} rows to {csv_path}")
     print("Open it in a spreadsheet, fill the `human_label` column with one of "
