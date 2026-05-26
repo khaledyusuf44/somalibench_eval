@@ -2,6 +2,8 @@
 
 This directory mirrors the SomaliWeb v1 paper setup: one self-contained LaTeX source, one BibTeX file, standard TeXLive packages only, and a small arXiv zip target.
 
+Published paper: [SomaliBench Eval: Measuring English-to-Somali Refusal Gaps in Open-Weight Language Models](https://arxiv.org/abs/2605.25420) (`arXiv:2605.25420`).
+
 ```
 paper/
 |-- main.tex                 arXiv paper source

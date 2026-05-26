@@ -1,6 +1,6 @@
 # somalibench_eval — Cross-lingual refusal study across four open-weight LLMs
 
-[![Status: scaffold](https://img.shields.io/badge/Status-scaffold%20v0.1.0-orange.svg)](https://github.com/khaledyusuf44/somalibench_eval/releases/tag/v0.1.0-scaffold)
+[![Paper: arXiv](https://img.shields.io/badge/arXiv-2605.25420-b31b1b.svg)](https://arxiv.org/abs/2605.25420)
 [![Companion: SomaliBench v0](https://img.shields.io/badge/🤗%20Benchmark-khaledyusuf44%2Fsomalibench--v0-yellow)](https://huggingface.co/datasets/khaledyusuf44/somalibench-v0)
 [![Companion paper: SomaliWeb v1](https://img.shields.io/badge/arXiv-2605.18232-b31b1b.svg)](https://arxiv.org/abs/2605.18232)
 [![Code License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](LICENSE)
@@ -8,6 +8,8 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB.svg)](https://www.python.org/)
 
 **Companion evaluation study to [SomaliBench v0](https://github.com/khaledyusuf44/somalibench_v0).**
+
+Paper: [SomaliBench Eval: Measuring English-to-Somali Refusal Gaps in Open-Weight Language Models](https://arxiv.org/abs/2605.25420) (`arXiv:2605.25420`).
 
 Runs SomaliBench v0 (100 harmful prompts × en/so = 200 records) against four open-weight
 language models, classifies each response as refused / complied / unclear via an LLM-as-judge
@@ -49,8 +51,9 @@ src/05_make_figures.py     Plots and tables for the paper
 
 - `data/results/refusal_rates.csv`         — per-model per-language refusal rate + CIs
 - `data/results/cross_lingual_gap.csv`     — the headline: per-model EN-SO gap
-- `data/results/per_category_breakdown.csv`
-- `paper/`                                  — short paper draft (~6–8 pages)
+- `data/results/per_category.csv`
+- `data/results/somali_compliance_coherence.json`
+- `paper/`                                  — arXiv paper sources + submission zip
 
 ## License
 
@@ -70,6 +73,7 @@ Khalid Yusuf Dahir — Mogadishu · [khaliddahir.com](https://khaliddahir.com)
 
 ## Related work
 
+- [SomaliBench Eval](https://arxiv.org/abs/2605.25420) — this paper
 - [SomaliBench v0](https://github.com/khaledyusuf44/somalibench_v0) — the dataset this study evaluates
 - [SomaliWeb v1](https://arxiv.org/abs/2605.18232) — companion corpus + tokenizer + LID benchmark
 - [multilingual-safety-probe](https://github.com/khaledyusuf44/multilingual-safety-probe) — the pilot (n=15, 5 languages) that motivated this study
