@@ -396,8 +396,8 @@ We thank the maintainers of HarmBench, AdvBench, Ollama, and the open-weight mod
   \item Judge prompt template: included in Appendix~\ref{app:judgeprompt}.
   \item Spot-check CSV schema: \texttt{probe\_id}, \texttt{category}, \texttt{lang}, \texttt{model\_id}, \texttt{prompt\_text}, \texttt{response}, \texttt{judge\_label}, \texttt{judge\_reason}, \texttt{human\_label}, \texttt{notes}.
   \item Ollama runtime: server version 0.23.1 in this run environment; local client reported 0.24.0.
-  \item Public outputs: \texttt{data/results/*.csv}, \texttt{data/results/summary.json}, \texttt{data/results/somali\_compliance\_coherence.json}, \texttt{data/figures/*.pdf}, and \texttt{data/spot\_checks/agreement.json}.
-  \item Local-only outputs: \texttt{data/responses/*.jsonl}, \texttt{data/classifications/*.jsonl}, and the filled spot-check CSV.
+  \item Public outputs: aggregate CSV/JSON files in \path{data/results/}, figure PDFs in \path{data/figures/}, and the spot-check agreement file.
+  \item Local-only outputs: raw responses in \path{data/responses/}, classifications in \path{data/classifications/}, and filled manual-review CSVs.
 \end{itemize}
 
 \section{Judge Prompt}
