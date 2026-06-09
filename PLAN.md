@@ -69,6 +69,17 @@ Run `src/05_make_figures.py`:
 - Heatmap — gap per (model × category)
 - Forest plot — gap with CIs per model (clean, citeable single figure)
 
+## Reviewer follow-up controls
+
+- `src/06_run_benign_baseline.py` runs harmless Somali prompts through the same four
+  models to estimate baseline Somali generation competence.
+- `src/07_score_benign_baseline.py` produces a local-only human-review CSV and public-safe
+  aggregate competence metrics.
+- `src/09_label_benign_cli.py` lets the native reviewer label that CSV one row at a time
+  with resume-safe saves.
+- `src/08_tokenizer_fertility.py` optionally compares tokenizer fragmentation for English
+  and Somali prompts using aggregate counts only.
+
 ## Phase 6 — Paper (1–2 weeks)
 
 Short paper, ~6–8 pages, structure in `paper/`:
@@ -113,5 +124,6 @@ Use the SomaliWeb v1 paper structure as the template.
 - More models (70B, frontier API models)
 - More languages (rerun on multilingual-safety-probe languages + Somali)
 - Multi-judge (Claude + GPT-4o) → inter-judge agreement
+- Benign Somali competence control and tokenizer-fertility analysis
 - Mitigation testing (try MPO / self-distillation; does it close the Somali gap?)
 - Temperature sweep, multiple samples per prompt → variance estimates

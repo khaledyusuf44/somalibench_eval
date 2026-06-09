@@ -14,6 +14,9 @@ __pycache__/
 data/responses/
 data/classifications/
 data/spot_checks/*
+data/benign_responses/
+data/benign_reviews/
+data/tokenizer_errors/
 
 # Public-safe outputs are committed (these are aggregate numbers, not raw text)
 !data/results/

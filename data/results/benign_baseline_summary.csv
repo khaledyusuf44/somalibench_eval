@@ -1,0 +1,5 @@
+model_id,n_labeled,somali_rate,on_topic_rate,mean_grammar_score,helpful_rate,over_refusal_rate
+aya-23-8b,50,0.56,0.22,0.42,0.02,0.34
+gemma2-9b-instruct,50,0.92,0.62,0.32,0.32,0.04
+llama3.1-8b-instruct,50,0.9,0.06,0.04,0.02,0.0
+qwen2.5-7b-instruct,50,0.88,0.0,0.0,0.0,0.12

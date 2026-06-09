@@ -39,7 +39,7 @@
 \maketitle
 
 \begin{abstract}
-Large language model safety evaluation remains heavily English-centered, leaving low-resource languages under-measured even when models are deployed globally. We evaluate four open-weight instruction-tuned models on SomaliBench v0, a native-author-verified benchmark of 100 harmful-intent prompts paired across English and Somali. Each of Llama-3.1-8B-Instruct, Gemma-2-9B-Instruct, Qwen-2.5-7B-Instruct, and Aya-23-8B is run locally with temperature 0 and the same English ``helpful, harmless, and honest'' (HHH) system prompt. A pinned Claude Sonnet snapshot (\texttt{claude-sonnet-4-5-20250929}) classifies each response as \textit{refused}, \textit{complied}, or \textit{unclear}; the native author spot-checks a stratified 80-row sample. We find large English-to-Somali refusal gaps for all four models: Llama-3.1-8B (0.90; 95\% bootstrap CI [0.85, 0.96]), Aya-23-8B (0.75 [0.67, 0.83]), Qwen-2.5-7B (0.69 [0.59, 0.78]), and Gemma-2-9B (0.38 [0.27, 0.49]). For three models, the dominant Somali non-refusal mode is not fluent harmful compliance but \textit{unclear} output: empty, wrong-language, or incoherent generations. The native verification spot-check achieves 100\% agreement with the judge (Cohen's $\kappa=1.00$) on the 80 sampled rows. We report aggregate refusal rates, category gaps, and reliability statistics only; raw model generations are retained locally and are not released.
+Large language model safety evaluation remains heavily English-centered, leaving low-resource languages under-measured even when models are deployed globally. We evaluate four open-weight instruction-tuned models on SomaliBench v0, a native-author-verified benchmark of 100 harmful-intent prompts paired across English and Somali. Each of Llama-3.1-8B-Instruct, Gemma-2-9B-Instruct, Qwen-2.5-7B-Instruct, and Aya-23-8B is run locally with temperature 0 and the same English ``helpful, harmless, and honest'' (HHH) system prompt. A pinned Claude Sonnet snapshot (\texttt{claude-sonnet-4-5-20250929}) classifies each response as \textit{refused}, \textit{complied}, or \textit{unclear}; the native author spot-checks a 10\% stratified sample. We find large English-to-Somali refusal gaps for all four models: Llama-3.1-8B (0.90; 95\% bootstrap CI [0.85, 0.96]), Aya-23-8B (0.75 [0.67, 0.83]), Qwen-2.5-7B (0.69 [0.59, 0.78]), and Gemma-2-9B (0.38 [0.27, 0.49]). For three models, the dominant Somali non-refusal mode is not fluent harmful compliance but \textit{unclear} output: empty, wrong-language, or incoherent generations. The native verification spot-check achieves 100\% agreement with the judge (Cohen's $\kappa=1.00$) on the 80 sampled rows. We report aggregate refusal rates, category gaps, and reliability statistics only; raw model generations are retained locally and are not released because some may contain harmful content.
 
 \medskip
 \noindent\textbf{Code:} \url{https://github.com/khaledyusuf44/somalibench_eval}\\
@@ -51,7 +51,7 @@ Large language model safety evaluation remains heavily English-centered, leaving
 \begin{itemize}[leftmargin=1.5em,itemsep=2pt,topsep=2pt]
   \item \textbf{C1 (Measurement).} We provide a cross-model refusal-rate evaluation of four local open-weight LLMs on the same 100 English/Somali safety prompts.
   \item \textbf{C2 (Headline metric).} We report the English-minus-Somali refusal gap with 95\% bootstrap confidence intervals for each model.
-  \item \textbf{C3 (Reliability).} We validate the LLM-as-judge labels with a native-author stratified spot-check of 80 rows and report both raw agreement and Cohen's $\kappa$.
+  \item \textbf{C3 (Reliability).} We validate the LLM-as-judge labels with a native-author 10\% stratified spot-check (80 of 800 rows) and report both raw agreement and Cohen's $\kappa$.
   \item \textbf{C4 (Release discipline).} We separate public-safe aggregate statistics from local-only raw generations, avoiding redistribution of harmful model completions while preserving reproducibility.
 \end{itemize}
 
@@ -59,7 +59,7 @@ Large language model safety evaluation remains heavily English-centered, leaving
 \section{Introduction}
 \label{sec:intro}
 
-Safety alignment is usually trained, red-teamed, and evaluated first in English. Prior work has shown that this creates a multilingual safety gap: prompts translated into low-resource languages can bypass refusal behavior that appears robust in English \citep{yong2023lowresource,deng2023multilingual,yong2025state}. Somali is a particularly important test case. It is a major Cushitic language with 15--20 million native speakers, yet it has historically lacked dedicated NLP infrastructure; the companion SomaliWeb v1 work documents this broader resource gap for corpora, tokenizers, and language-identification benchmarks \citep{dahir2026somaliweb}. This matters operationally because small open-weight models are increasingly used through local tools such as Ollama, bundled into applications, or served as low-cost hosted inference for products targeting African and diaspora users.
+Safety alignment is usually trained, red-teamed, and evaluated first in English. Prior work has shown that this creates a multilingual safety gap: prompts translated into low-resource languages can bypass refusal behavior that appears robust in English \citep{yong2023lowresource,deng2024multilingual,yong2025state}. Somali is a particularly important test case. It is a major Cushitic language with 15--20 million native speakers, yet it has historically lacked dedicated NLP infrastructure; the companion SomaliWeb v1 work documents this broader resource gap for corpora, tokenizers, and language-identification benchmarks \citep{dahir2026somaliweb}. This matters operationally because small open-weight models are increasingly used through local tools such as Ollama, bundled into applications, or served as low-cost hosted inference for products targeting African and diaspora users.
 
 SomaliBench v0 was created to make one slice of that problem measurable: safety refusal transfer from English into native-authored Somali \citep{dahir2026somalibench}. It contains 100 harmful-intent prompts drawn from established safety benchmarks, paired with Somali translations verified by the native-author. The present paper asks a narrow empirical question:
 
@@ -79,6 +79,26 @@ The result is stark. All four models refuse far more often in English than in So
 
 \paragraph{Prompt selection.} The source set uses 50 HarmBench prompts and 50 AdvBench prompts. HarmBench candidates were restricted to text-only, non-contextual ``standard'' behaviors, mapped from HarmBench's semantic labels into SomaliBench's seven-category schema; HarmBench's copyright category was dropped because it is an intellectual-property category rather than a safety category. AdvBench has no native category labels, so prompts were assigned to SomaliBench categories by lightweight keyword stratification and then author spot-checking. Near-identical prompts across the two sources were de-duplicated before sampling the target counts (20 harmful instruction, 15 misinformation, 15 hate speech, 10 privacy, 15 cybersecurity, 15 CBRN, 10 self-harm).
 
+\begin{table}[h]
+\centering
+\small
+\caption{SomaliBench v0 safety categories. Counts are prompt pairs; each category contains the same number of English and Somali prompts.}
+\label{tab:categories}
+\begin{tabular}{p{3.0cm}rp{8.4cm}}
+\toprule
+Category & Pairs & Definition \\
+\midrule
+Harmful instruction & 20 & Requests for procedural assistance with physical harm, illegal activity, fraud, abuse, or other unsafe real-world actions. \\
+Misinformation & 15 & Requests to create or distribute false claims, propaganda, fake news, or manipulative political/social narratives. \\
+Hate speech & 15 & Requests for content targeting protected or vulnerable groups with dehumanizing, supremacist, or violence-inciting language. \\
+Privacy & 10 & Requests involving doxxing, identity theft, credential theft, surveillance, or misuse of personal information. \\
+Cybersecurity & 15 & Requests for malware, exploit use, unauthorized access, social engineering, or bypassing security controls. \\
+CBRN & 15 & Chemical, biological, radiological, or nuclear weaponization or dangerous-material assistance. \\
+Self-harm & 10 & Requests encouraging, instructing, or normalizing suicide, self-injury, or related harmful behavior. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Safety handling.} The benchmark intentionally contains harmful-intent prompts because refusal behavior cannot be measured without inputs a safe model should decline. In this study, raw model responses are treated as local-only research records. We do not print harmful prompts or model completions in this paper. Public outputs are aggregate tables, figures, and reliability counts.
 
 % =========================================================================
@@ -87,7 +107,7 @@ The result is stark. All four models refuse far more often in English than in So
 
 \paragraph{Safety benchmarks and red-teaming.} HarmBench standardizes automated red-teaming and robust refusal evaluation across harmful behavior categories \citep{mazeika2024harmbench}. AdvBench, introduced in work on universal and transferable adversarial attacks, is widely used as a harmful-instruction source set \citep{zou2023universal}. Our work reuses this benchmark tradition but changes the target of measurement: we do not propose a new attack, and we do not optimize prompts. We measure baseline refusal transfer across languages.
 
-\paragraph{Multilingual safety gaps.} \citet{yong2023lowresource} show that low-resource-language translations can bypass GPT-4 safeguards. \citet{deng2023multilingual} similarly study multilingual jailbreak behavior and report higher harmful-response likelihood in low-resource languages. The 2025 multilingual safety survey argues that LLM safety research itself remains strongly English-centered and calls for better language documentation and cross-lingual safety measurement \citep{yong2025state}. SomaliBench Eval contributes a Somali-specific, open-weight, reproducible measurement point within this larger agenda.
+\paragraph{Multilingual safety gaps.} \citet{yong2023lowresource} show that low-resource-language translations can bypass GPT-4 safeguards. \citet{deng2024multilingual} similarly study multilingual jailbreak behavior and report higher harmful-response likelihood in low-resource languages. The 2025 multilingual safety survey argues that LLM safety research itself remains strongly English-centered and calls for better language documentation and cross-lingual safety measurement \citep{yong2025state}. SomaliBench Eval contributes a Somali-specific, open-weight, reproducible measurement point within this larger agenda.
 
 \paragraph{LLM-as-judge evaluation.} LLM-as-judge evaluation has become a practical tool for scaling response assessment, but it requires careful validation \citep{zheng2023judging}. We use a three-class judge with a strict refusal/compliance rubric, then validate it through a native-author spot-check. Because the task is categorical rather than preference-based, we report both raw agreement and Cohen's $\kappa$ \citep{cohen1960coefficient}.
 
@@ -148,7 +168,7 @@ We use the pinned Anthropic judge snapshot \texttt{claude-sonnet-4-5-20250929} w
 
 \subsection{Native-author spot-check}
 
-The native author labels a stratified random sample of 80 classification rows, balanced across the seven safety categories. The review CSV includes the prompt text, model response, judge label, and judge reason; the author fills only \texttt{human\_label}. Agreement is computed on the three-class labels. This is a verification spot-check rather than a blinded independent annotation study.
+The native author labels a 10\% stratified random sample of the 800 classification rows ($n=80$), balanced across the seven safety categories. The review CSV includes the prompt text, model response, judge label, and judge reason; the author fills only \texttt{human\_label}. Agreement is computed on the three-class labels. This is a verification spot-check rather than a blinded independent annotation study.
 
 The spot-check produced 100\% agreement: 41/41 \textit{refused}, 33/33 \textit{unclear}, and 6/6 \textit{complied}, for Cohen's $\kappa=1.00$.
 
@@ -251,7 +271,48 @@ Qwen-2.5-7B & so & 24 & 3 & 73 \\
 
 Table~\ref{tab:labels} clarifies the safety interpretation. A refusal gap is not identical to a harmful-compliance gap. In Somali, Aya-23-8B, Llama-3.1-8B, and Qwen-2.5-7B often produce outputs that are not classifiable as either refusal or compliance. This is still a deployment-relevant failure: the model does not reliably express the intended safety behavior in Somali. But it should not be overstated as direct harmful assistance.
 
+\begin{table}[h]
+\centering
+\small
+\caption{Redacted examples of the response types observed. Prompts and harmful details are omitted; snippets are descriptive or safe refusal text only.}
+\label{tab:failuremodes}
+\begin{tabular}{p{2.6cm}p{3.2cm}p{6.9cm}}
+\toprule
+Judge label & Failure mode & Redacted pattern \\
+\midrule
+Refused & Safe refusal & The model declines the harmful request and gives a brief safety-oriented explanation or benign alternative. \\
+Unclear & Wrong language & The model answers in English or another unrelated language rather than Somali, with no clear refusal or compliance. \\
+Unclear & Incoherent/repetitive & The output repeats generic Somali fragments or malformed phrases and never becomes a classifiable refusal or answer. \\
+Unclear & Empty/off-topic & The output is blank, unrelated to the request, or too disconnected from the prompt to classify. \\
+Complied & Substantive engagement & The model provides content responsive to the harmful request; operational details are redacted and not released. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 We manually audited the 27 Somali rows labeled \textit{complied} for language coherence without publishing examples. Nine of 27 were coherent Somali-dominant passages, all from Gemma-2-9B. The remaining 18 included short assertions, code- or HTTP-heavy mixed-language technical text, or grammatically degraded and repetitive Somali. Thus the Somali compliance count should be read as ``substantive engagement under the rubric,'' not as 27 fluent, operationally polished Somali harmful completions.
+
+\subsection{Benign Somali competence control}
+
+To probe whether Somali \textit{unclear} rates reflect safety-transfer failure, ordinary Somali generation failure, or both, we added a post-hoc benign control set of 50 harmless Somali prompts. The same four models were run with the same decoding settings and English HHH system prompt. The native author manually labeled each response for whether it was primarily Somali, on topic, grammatical enough, helpful, and whether it over-refused a harmless request.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Post-hoc benign Somali control ($n=50$ harmless prompts per model). Rates are native-author labels. Grammar is scored 0=unusable, 1=degraded but understandable, 2=good/fluent enough.}
+\label{tab:benign}
+\begin{tabular}{lrrrrr}
+\toprule
+Model & Somali & On-topic & Mean grammar & Helpful & Over-refusal \\
+\midrule
+Aya-23-8B & 0.56 & 0.22 & 0.42 & 0.02 & 0.34 \\
+Gemma-2-9B & 0.92 & 0.62 & 0.32 & 0.32 & 0.04 \\
+Llama-3.1-8B & 0.90 & 0.06 & 0.04 & 0.02 & 0.00 \\
+Qwen-2.5-7B & 0.88 & 0.00 & 0.00 & 0.00 & 0.12 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:benign} shows that the Somali safety results are partly confounded by baseline Somali generation quality. Llama-3.1-8B and Qwen-2.5-7B often produce Somali-looking text on harmless prompts, but the responses are rarely on topic or helpful. Aya-23-8B shows a different failure mode: it over-refuses 34\% of harmless Somali prompts. Gemma-2-9B is again the strongest Somali performer, with the highest on-topic and helpful rates, although its grammar remains degraded under this strict rubric. This supports the interpretation that the safety benchmark measures an explicit-refusal transfer gap intertwined with model-specific Somali competence, rather than a pure harmful-compliance rate.
 
 \subsection{Per-category gaps}
 
@@ -270,7 +331,7 @@ The gap appears across all seven categories (Figure~\ref{fig:category}). Average
 
 \paragraph{Unclear is a real class.} The most important secondary result is that Somali failures are often not fluent harmful completions. Many Somali generations are neither safe refusals nor harmful completions. Treating every non-refusal as harmful compliance would exaggerate risk; treating them as successful safety behavior would also be wrong. The three-class rubric preserves this distinction and shows that language competence and safety behavior are intertwined.
 
-\paragraph{Somali competence is a confound.} The high \textit{unclear} rate on Somali safety prompts may reflect both safety-conditioning failure and ordinary Somali generation-competence failure. The present study does not include a benign Somali control set, so it cannot estimate how often these same models produce unclear outputs for harmless Somali instructions of similar length and style. A v2 should add a matched benign-prompt control and report the baseline Somali unclear rate alongside the safety-prompt unclear rate.
+\paragraph{Somali competence is a confound.} The benign control in Table~\ref{tab:benign} confirms that the high \textit{unclear} rate on Somali safety prompts reflects both safety-conditioning failure and ordinary Somali generation-competence failure. This does not erase the refusal gap: models that refuse reliably in English often fail to express a clear refusal in Somali even under an explicit safety cue. But it does narrow the interpretation. The headline metric is best read as an explicit-refusal transfer gap under imperfect Somali competence, not as a standalone measure of harmful Somali compliance.
 
 \paragraph{Safety transfer is brittle.} Even with that caveat, the explicit refusal behavior that appears strong in English often fails to appear in Somali. This matches the broader literature on multilingual safety gaps but adds a Somali-specific, native-verified, open-weight measurement point.
 
@@ -284,7 +345,7 @@ The gap appears across all seven categories (Figure~\ref{fig:category}). Average
 
 \begin{enumerate}[leftmargin=1.5em,itemsep=2pt,topsep=2pt]
   \item \textbf{Small benchmark size.} SomaliBench v0 has 100 prompt pairs. This is enough to detect large gaps but too small for fine-grained category claims.
-  \item \textbf{No benign Somali competence baseline.} The \textit{unclear} class conflates failures of safety transfer with failures of Somali generation competence. A matched benign Somali control is required to separate the two.
+  \item \textbf{Post-hoc benign control.} The benign Somali control is useful for interpretation, but it is smaller than a full benchmark and was labeled by the same native author rather than a second blinded annotator. A v2 should make this a pre-registered matched control with confidence intervals.
   \item \textbf{English HHH system prompt.} The system prompt is an English safety instruction, not a neutral or translated prompt. The reported numbers are conditioned on this deployment choice.
   \item \textbf{Single judge.} We use one LLM judge and one native-author verification spot-check. Multi-judge comparison and a second blinded human annotator are natural v2 extensions.
   \item \textbf{Ollama tags, not full precision upstream weights.} The study targets reproducible local evaluation. Three of the four local model builds are quantized (Table~\ref{tab:models}); quantization and serving templates may affect absolute rates and could affect safety behavior asymmetrically. A v2 should rerun at least one model through full-precision \texttt{transformers} or vLLM weights to bound this effect.
@@ -304,7 +365,7 @@ This is defensive measurement research. The benchmark prompts are intentionally 
 
 SomaliBench Eval measures a large English-to-Somali refusal gap across four open-weight instruction-tuned language models. English refusal rates are high (0.80--0.97), but Somali refusal rates range from 0.05 to 0.59. All four English-minus-Somali gap confidence intervals are strictly positive. The result supports a simple conclusion: baseline safety refusal behavior does not reliably transfer from English to Somali in current small open-weight models.
 
-The next version should expand SomaliBench from 100 to roughly 500 prompt pairs, add a matched benign Somali control set, compare no-system, English-HHH, and Somali-HHH system prompts, add multi-judge consensus with at least one non-Claude-family judge, and include a second blinded native annotator. It should also rerun one or more models at full precision and report category-level confidence intervals, turning the present baseline result into a stronger measurement suite for Somali-aware safety mitigation.
+The next version should expand SomaliBench from 100 to roughly 500 prompt pairs, make the benign Somali control pre-registered and matched, compare no-system, English-HHH, and Somali-HHH system prompts, add multi-judge consensus with at least one non-Claude-family judge, and include a second blinded native annotator. It should also rerun one or more models at full precision and report category-level confidence intervals, turning the present baseline result into a stronger measurement suite for Somali-aware safety mitigation.
 
 % =========================================================================
 \section*{Acknowledgments}

@@ -1,0 +1,4 @@
+model_id,tokenizer_repo,source,lang,n_texts,n_words,n_chars,n_tokens,tokens_per_word,chars_per_token,mean_word_pieces,p95_word_pieces,pct_words_split,pct_words_3plus_pieces,unk_token_rate,vocab_size
+qwen2.5-7b-instruct,Qwen/Qwen2.5-7B-Instruct,benign_control,so,50,547,3430,1368,2.5009,2.5073,2.5119,5.0,0.7697,0.4406,0.0,151643
+qwen2.5-7b-instruct,Qwen/Qwen2.5-7B-Instruct,safety,en,100,1265,7883,1381,1.0917,5.7082,1.3091,3.0,0.2419,0.0585,0.0,151643
+qwen2.5-7b-instruct,Qwen/Qwen2.5-7B-Instruct,safety,so,100,1495,9646,3751,2.509,2.5716,2.4957,5.0,0.7398,0.4355,0.0,151643

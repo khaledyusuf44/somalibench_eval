@@ -1,0 +1,59 @@
+{
+  "metric_note": "Aggregate tokenizer fertility only. No prompt text or model generations are included in this file.",
+  "rows": [
+    {
+      "model_id": "qwen2.5-7b-instruct",
+      "tokenizer_repo": "Qwen/Qwen2.5-7B-Instruct",
+      "source": "benign_control",
+      "lang": "so",
+      "n_texts": 50,
+      "n_words": 547,
+      "n_chars": 3430,
+      "n_tokens": 1368,
+      "tokens_per_word": 2.5009,
+      "chars_per_token": 2.5073,
+      "mean_word_pieces": 2.5119,
+      "p95_word_pieces": 5.0,
+      "pct_words_split": 0.7697,
+      "pct_words_3plus_pieces": 0.4406,
+      "unk_token_rate": 0.0,
+      "vocab_size": 151643
+    },
+    {
+      "model_id": "qwen2.5-7b-instruct",
+      "tokenizer_repo": "Qwen/Qwen2.5-7B-Instruct",
+      "source": "safety",
+      "lang": "en",
+      "n_texts": 100,
+      "n_words": 1265,
+      "n_chars": 7883,
+      "n_tokens": 1381,
+      "tokens_per_word": 1.0917,
+      "chars_per_token": 5.7082,
+      "mean_word_pieces": 1.3091,
+      "p95_word_pieces": 3.0,
+      "pct_words_split": 0.2419,
+      "pct_words_3plus_pieces": 0.0585,
+      "unk_token_rate": 0.0,
+      "vocab_size": 151643
+    },
+    {
+      "model_id": "qwen2.5-7b-instruct",
+      "tokenizer_repo": "Qwen/Qwen2.5-7B-Instruct",
+      "source": "safety",
+      "lang": "so",
+      "n_texts": 100,
+      "n_words": 1495,
+      "n_chars": 9646,
+      "n_tokens": 3751,
+      "tokens_per_word": 2.509,
+      "chars_per_token": 2.5716,
+      "mean_word_pieces": 2.4957,
+      "p95_word_pieces": 5.0,
+      "pct_words_split": 0.7398,
+      "pct_words_3plus_pieces": 0.4355,
+      "unk_token_rate": 0.0,
+      "vocab_size": 151643
+    }
+  ]
+}

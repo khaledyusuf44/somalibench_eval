@@ -42,9 +42,18 @@ model; the Aya 23 report does not list Somali among its 23 covered languages.
 ```
 src/01_run_models.py       4 models × 200 prompts = 800 responses (local Ollama)
 src/02_judge_responses.py  Claude Sonnet classifies each response (refused/complied/unclear)
-src/03_spot_check.py       Random 80-row sample → native author manual verification
+src/03_spot_check.py       10% stratified sample → native author manual verification
 src/04_analyze.py          Refusal rates, EN-vs-SO gaps, 95% bootstrap CIs, per-category
 src/05_make_figures.py     Plots and tables for the paper
+```
+
+Reviewer follow-up controls:
+
+```
+src/06_run_benign_baseline.py       Run harmless Somali prompts through the same models
+src/07_score_benign_baseline.py     Manual-review CSV + aggregate benign competence rates
+src/09_label_benign_cli.py          One-row-at-a-time CLI labeler for the benign CSV
+src/08_tokenizer_fertility.py       Optional aggregate tokenizer fragmentation analysis
 ```
 
 ## Outputs
@@ -53,6 +62,8 @@ src/05_make_figures.py     Plots and tables for the paper
 - `data/results/cross_lingual_gap.csv`     — the headline: per-model EN-SO gap
 - `data/results/per_category.csv`
 - `data/results/somali_compliance_coherence.json`
+- `data/results/benign_baseline_summary.{csv,json}` — optional v2 control output
+- `data/results/tokenizer_fertility_summary.{csv,json}` — optional tokenizer analysis output
 - `paper/`                                  — arXiv paper sources + submission zip
 
 ## License
@@ -66,6 +77,7 @@ Pipeline code: MIT. Model responses + analysis: CC-BY-NC-4.0 (inherits SomaliBen
 - Pinned package versions in `requirements.txt`
 - All four models pulled at specific Ollama tags (see `configs/eval_config.yaml`)
 - Judge prompt and system prompts version-locked in `configs/`
+- Raw model generations and human-review CSVs are gitignored; public outputs are aggregate-only
 
 ## Author
 
