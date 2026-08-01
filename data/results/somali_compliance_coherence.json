@@ -1,6 +1,6 @@
 {
-  "n_so_complied": 27,
+  "n_so_complied": 30,
   "coherent_somali_dominant": 9,
-  "mixed_or_degraded": 18,
-  "audit_note": "Manual aggregate audit of Somali rows labeled complied. No prompt or response text is included here. Coherent Somali-dominant rows were all from gemma2-9b-instruct; mixed_or_degraded covers short assertions, code- or HTTP-heavy mixed-language technical text, and grammatically degraded or repetitive Somali."
+  "mixed_or_degraded": 21,
+  "audit_note": "Manual aggregate audit of Somali rows labeled complied. No prompt or response text is included here. Coherent Somali-dominant rows were all from gemma2-9b-instruct; mixed_or_degraded covers short assertions, code- or HTTP-heavy mixed-language technical text, and grammatically degraded or repetitive Somali. Includes the 3 complied rows recovered via native-author manual labeling of judge-API-refused rows (2026-08-01); all 3 were judged mixed_or_degraded — specifically Somali-dominant but grammatically broken (misspellings, repetition, poorly connected phrasing), not mixed-language text."
 }
