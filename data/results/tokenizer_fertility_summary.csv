@@ -1,4 +1,7 @@
 model_id,tokenizer_repo,source,lang,n_texts,n_words,n_chars,n_tokens,tokens_per_word,chars_per_token,mean_word_pieces,p95_word_pieces,pct_words_split,pct_words_3plus_pieces,unk_token_rate,vocab_size
+llama3.1-8b-instruct,meta-llama/Llama-3.1-8B-Instruct,benign_control,so,50,547,3430,1358,2.4826,2.5258,2.4899,5.0,0.7623,0.4333,0.0,128000
+llama3.1-8b-instruct,meta-llama/Llama-3.1-8B-Instruct,safety,en,100,1265,7883,1379,1.0901,5.7165,1.3067,3.0,0.2403,0.0585,0.0,128000
+llama3.1-8b-instruct,meta-llama/Llama-3.1-8B-Instruct,safety,so,100,1495,9646,3727,2.493,2.5881,2.4783,5.0,0.7351,0.4314,0.0,128000
 gemma2-9b-instruct,google/gemma-2-9b-it,benign_control,so,50,547,3430,1218,2.2267,2.8161,2.2431,4.0,0.7075,0.3583,0.0,256000
 gemma2-9b-instruct,google/gemma-2-9b-it,safety,en,100,1265,7883,1375,1.087,5.7331,1.2,2.0,0.1478,0.0435,0.0,256000
 gemma2-9b-instruct,google/gemma-2-9b-it,safety,so,100,1495,9646,3295,2.204,2.9275,2.2321,4.0,0.6803,0.3505,0.0,256000
