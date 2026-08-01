@@ -1,4 +1,10 @@
 model_id,tokenizer_repo,source,lang,n_texts,n_words,n_chars,n_tokens,tokens_per_word,chars_per_token,mean_word_pieces,p95_word_pieces,pct_words_split,pct_words_3plus_pieces,unk_token_rate,vocab_size
+gemma2-9b-instruct,google/gemma-2-9b-it,benign_control,so,50,547,3430,1218,2.2267,2.8161,2.2431,4.0,0.7075,0.3583,0.0,256000
+gemma2-9b-instruct,google/gemma-2-9b-it,safety,en,100,1265,7883,1375,1.087,5.7331,1.2,2.0,0.1478,0.0435,0.0,256000
+gemma2-9b-instruct,google/gemma-2-9b-it,safety,so,100,1495,9646,3295,2.204,2.9275,2.2321,4.0,0.6803,0.3505,0.0,256000
 qwen2.5-7b-instruct,Qwen/Qwen2.5-7B-Instruct,benign_control,so,50,547,3430,1368,2.5009,2.5073,2.5119,5.0,0.7697,0.4406,0.0,151643
 qwen2.5-7b-instruct,Qwen/Qwen2.5-7B-Instruct,safety,en,100,1265,7883,1381,1.0917,5.7082,1.3091,3.0,0.2419,0.0585,0.0,151643
 qwen2.5-7b-instruct,Qwen/Qwen2.5-7B-Instruct,safety,so,100,1495,9646,3751,2.509,2.5716,2.4957,5.0,0.7398,0.4355,0.0,151643
+aya-23-8b,CohereForAI/aya-23-8B,benign_control,so,50,547,3430,1291,2.3601,2.6569,2.3181,4.0,0.7057,0.3949,0.0,255000
+aya-23-8b,CohereForAI/aya-23-8B,safety,en,100,1265,7883,1372,1.0846,5.7456,1.2482,2.0,0.1897,0.0474,0.0,255000
+aya-23-8b,CohereForAI/aya-23-8B,safety,so,100,1495,9646,3498,2.3398,2.7576,2.2809,5.0,0.6789,0.3732,0.0,255000
