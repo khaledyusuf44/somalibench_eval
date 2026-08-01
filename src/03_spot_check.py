@@ -132,6 +132,18 @@ def score(csv_path: Path, out_json: Path) -> None:
               "then re-run with --score.")
         sys.exit(1)
 
+    # Rows with a blank judge_label have no genuine API-judge judgment
+    # (the judge API refused to process them; see --sync) and cannot be
+    # part of a judge-vs-human agreement number.
+    no_judge = [r for r in labeled if not (r.get("judge_label") or "").strip()]
+    if no_judge:
+        print(f"Excluding {len(no_judge)} rows without an API judge label "
+              f"from agreement.")
+        labeled = [r for r in labeled if (r.get("judge_label") or "").strip()]
+    if not labeled:
+        print("No rows with both a judge label and a human label remain.")
+        sys.exit(1)
+
     total = len(labeled)
     agree = sum(1 for r in labeled
                 if (r["human_label"] or "").strip().lower()
@@ -190,16 +202,99 @@ def score(csv_path: Path, out_json: Path) -> None:
     print(f"\nwrote {out_json}")
 
 
+def sync(cfg: dict, csv_path: Path) -> None:
+    """Refresh judge_label/judge_reason in the review CSV from the current
+    classification files, preserving human_label and notes.
+
+    Needed after `02_judge_responses.py --retry-errors`: 6 of the 80 sampled
+    rows in the v1 run were failed judge calls auto-labeled 'unclear', so
+    their judge labels change once genuinely re-judged. Any row whose judge
+    label changed is printed so the native author can re-verify their
+    human_label before recomputing agreement with --score.
+    """
+    if not csv_path.exists():
+        print(f"ERROR: no review CSV at {csv_path}; nothing to sync.")
+        sys.exit(1)
+
+    with csv_path.open(encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        cols = reader.fieldnames
+        rows = list(reader)
+
+    current = {(r["probe_id"], r["lang"], r["model_id"]): r
+               for r in gather_labels(cfg)}
+
+    changed: list[dict] = []
+    excluded: list[dict] = []
+    missing = 0
+    for row in rows:
+        key = (row["probe_id"], row["lang"], row["model_id"])
+        cur = current.get(key)
+        if cur is None:
+            missing += 1
+            continue
+        # Rows without a genuine API-judge label cannot enter the
+        # judge-vs-human agreement: either the judge API refused to
+        # process them (error still set) or they were already replaced
+        # by the native author's own label (comparing that to the same
+        # author's spot-check label would fake agreement).
+        if cur.get("error") or str(cur.get("judge_model", "")).startswith("human:"):
+            excluded.append({"probe_id": row["probe_id"], "lang": row["lang"],
+                             "model_id": row["model_id"]})
+            row["judge_label"] = ""
+            row["judge_reason"] = ("no API judge label (judge refused; "
+                                   "excluded from agreement)")
+            continue
+        if cur["label"] != row["judge_label"]:
+            changed.append({"probe_id": row["probe_id"], "lang": row["lang"],
+                            "model_id": row["model_id"],
+                            "old": row["judge_label"], "new": cur["label"],
+                            "human": row.get("human_label", "")})
+        row["judge_label"] = cur["label"]
+        row["judge_reason"] = cur.get("reason", "")
+
+    with csv_path.open("w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=cols)
+        w.writeheader()
+        w.writerows(rows)
+
+    print(f"Synced {len(rows)} rows against current classifications "
+          f"({missing} rows had no current classification).")
+    if excluded:
+        print(f"\n{len(excluded)} rows have no genuine API-judge label "
+              f"(judge API refused) and are excluded from agreement:")
+        for e in excluded:
+            print(f"  {e['probe_id']} [{e['lang']}] {e['model_id']}")
+    if not changed:
+        print("No judge labels changed; existing human labels remain valid. "
+              "Re-run --score to refresh agreement.json.")
+        return
+    print(f"\n{len(changed)} rows changed judge label — RE-VERIFY the "
+          f"human_label for these rows in the CSV, then re-run --score:")
+    for c in changed:
+        print(f"  {c['probe_id']} [{c['lang']}] {c['model_id']}: "
+              f"{c['old']} -> {c['new']}  (human_label was: {c['human'] or '—'})")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--score", action="store_true",
         help="after you've filled the CSV, compute judge-vs-human agreement")
+    parser.add_argument("--sync", action="store_true",
+        help="refresh judge_label/judge_reason in the existing CSV from the "
+             "current classification files (human_label and notes are kept); "
+             "lists every row whose judge label changed so the native author "
+             "can re-verify those rows before re-running --score")
     args = parser.parse_args()
 
     cfg = load_config()
     sc_cfg = cfg["spot_check"]
     csv_path = ROOT / sc_cfg["output_csv"]
+
+    if args.sync:
+        sync(cfg, csv_path)
+        return
 
     if args.score:
         out_json = csv_path.parent / "agreement.json"

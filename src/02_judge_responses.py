@@ -119,38 +119,255 @@ def parse_label(text: str) -> tuple[str, str]:
         return "unclear", f"parse_error: {text[:200]}"
 
 
+def extract_text(resp) -> str:
+    """Concatenate every text block in the API response.
+
+    resp.content is a list of typed blocks and may be empty or contain
+    non-text blocks; indexing content[0] unconditionally raised
+    `list index out of range` on 38/800 rows in the original run.
+    """
+    return "".join(
+        block.text for block in resp.content
+        if getattr(block, "type", None) == "text"
+    ).strip()
+
+
 def classify_one(client, judge_model: str, lang: str, prompt: str,
-                 response: str, max_tokens: int) -> dict:
-    """Send one (prompt, response) pair to the judge and return a labeled dict."""
+                 response: str, max_tokens: int, retries: int = 3) -> dict:
+    """Send one (prompt, response) pair to the judge and return a labeled dict.
+
+    Retries transient failures and empty judge outputs with exponential
+    backoff. A row that still fails after all retries keeps label=unclear
+    but carries a non-null `error` so downstream analysis can count it
+    separately instead of treating it as a real judgment.
+    """
     user_msg = JUDGE_USER_TEMPLATE.format(lang=lang, prompt=prompt, response=response)
     start = time.time()
-    try:
-        resp = client.messages.create(
-            model=judge_model,
-            max_tokens=max_tokens,
-            temperature=0.0,
-            system=JUDGE_SYSTEM,
-            messages=[{"role": "user", "content": user_msg}],
+    last_error = None
+    for attempt in range(1, retries + 1):
+        try:
+            resp = client.messages.create(
+                model=judge_model,
+                max_tokens=max_tokens,
+                temperature=0.0,
+                system=JUDGE_SYSTEM,
+                messages=[{"role": "user", "content": user_msg}],
+            )
+            if getattr(resp, "stop_reason", None) == "refusal":
+                # The judge API's safety layer declined to process this
+                # (prompt, response) pair. Deterministic — retrying is
+                # pointless. These rows are routed to native-author manual
+                # labeling via --export-judge-refusals / --merge-human.
+                return {
+                    "label": "unclear",
+                    "reason": "judge_api_refusal",
+                    "judge_model": judge_model,
+                    "judge_version": JUDGE_VERSION,
+                    "latency_s": round(time.time() - start, 2),
+                    "error": "judge_api_refusal (stop_reason=refusal)",
+                }
+            text = extract_text(resp)
+            if not text:
+                last_error = (f"empty_judge_output "
+                              f"(stop_reason={getattr(resp, 'stop_reason', None)})")
+                time.sleep(2 ** attempt)
+                continue
+            label, reason = parse_label(text)
+            return {
+                "label": label,
+                "reason": reason,
+                "judge_model": judge_model,
+                "judge_version": JUDGE_VERSION,
+                "latency_s": round(time.time() - start, 2),
+                "error": None,
+            }
+        except Exception as e:
+            last_error = str(e)
+            time.sleep(2 ** attempt)
+    return {
+        "label": "unclear",
+        "reason": "judge_error",
+        "judge_model": judge_model,
+        "judge_version": JUDGE_VERSION,
+        "latency_s": round(time.time() - start, 2),
+        "error": last_error,
+    }
+
+
+def export_judge_refusals(cfg: dict, csv_out: Path) -> None:
+    """Write every classification row with a non-null error (in practice:
+    rows the judge API refused to process) to a CSV for native-author
+    manual labeling. Local-only — contains raw prompts and responses.
+    """
+    import csv as csv_mod
+
+    cls_dir = ROOT / cfg["paths"]["classifications_dir"]
+    resp_dir = ROOT / cfg["paths"]["responses_dir"]
+
+    resp_idx: dict[tuple[str, str, str], dict] = {}
+    for path in sorted(resp_dir.glob("*.jsonl")):
+        with path.open(encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    r = json.loads(line)
+                    resp_idx[(r["probe_id"], r["lang"], r["model_id"])] = r
+
+    rows = []
+    for path in sorted(cls_dir.glob("*.jsonl")):
+        with path.open(encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                rec = json.loads(line)
+                if not rec.get("error") or rec["error"] == "phase1_error":
+                    continue
+                src = resp_idx.get((rec["probe_id"], rec["lang"],
+                                    rec["model_id"]), {})
+                rows.append({
+                    "probe_id":   rec["probe_id"],
+                    "category":   rec.get("category", ""),
+                    "lang":       rec["lang"],
+                    "model_id":   rec["model_id"],
+                    "prompt_text": src.get("prompt_text", ""),
+                    "response":    src.get("response", ""),
+                    "error":       rec["error"],
+                    "human_label": "",   # fill with refused/complied/unclear
+                    "notes":       "",
+                })
+
+    csv_out.parent.mkdir(parents=True, exist_ok=True)
+    with csv_out.open("w", encoding="utf-8", newline="") as f:
+        w = csv_mod.DictWriter(f, fieldnames=list(rows[0].keys()) if rows
+                               else ["probe_id"])
+        w.writeheader()
+        w.writerows(rows)
+    print(f"Wrote {len(rows)} judge-refused rows to {csv_out}")
+    print("Fill human_label with one of {refused, complied, unclear}, then run:")
+    print(f"  python src/02_judge_responses.py --merge-human {csv_out}")
+
+
+def merge_human_labels(cfg: dict, csv_in: Path) -> None:
+    """Apply filled human_label values to the classification files.
+
+    Merged rows get judge_model='human:native-author' and error=None so
+    downstream analysis treats them as valid labels while keeping the
+    provenance distinguishable from API-judge labels.
+    """
+    import csv as csv_mod
+
+    with csv_in.open(encoding="utf-8") as f:
+        human = {(r["probe_id"], r["lang"], r["model_id"]):
+                 (r.get("human_label") or "").strip().lower()
+                 for r in csv_mod.DictReader(f)}
+
+    valid = {"refused", "complied", "unclear"}
+    filled = {k: v for k, v in human.items() if v}
+    bad = {k: v for k, v in filled.items() if v not in valid}
+    if bad:
+        raise SystemExit(f"Invalid human_label values (must be one of {valid}): "
+                         f"{bad}")
+    if not filled:
+        raise SystemExit("No human_label values filled in yet.")
+
+    cls_dir = ROOT / cfg["paths"]["classifications_dir"]
+    n_merged = 0
+    for path in sorted(cls_dir.glob("*.jsonl")):
+        with path.open(encoding="utf-8") as f:
+            recs = [json.loads(line) for line in f if line.strip()]
+        changed = False
+        for rec in recs:
+            key = (rec["probe_id"], rec["lang"], rec["model_id"])
+            if key in filled and rec.get("error"):
+                rec["label"] = filled[key]
+                rec["reason"] = ("native-author manual label "
+                                 "(judge API refused to process this row)")
+                rec["judge_model"] = "human:native-author"
+                rec["error"] = None
+                changed = True
+                n_merged += 1
+        if changed:
+            tmp = path.with_suffix(".jsonl.tmp")
+            with tmp.open("w", encoding="utf-8") as f:
+                for rec in recs:
+                    f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            tmp.replace(path)
+
+    print(f"Merged {n_merged} human labels into {cls_dir}")
+    if n_merged < len(filled):
+        print(f"NOTE: {len(filled) - n_merged} filled rows matched no "
+              f"error row (already merged, or key mismatch).")
+    print("Next: python src/04_analyze.py")
+
+
+def retry_error_rows(out_path: Path, responses: list[dict], client,
+                     judge_cfg: dict, model_id: str) -> None:
+    """Re-judge every row in an existing classification file whose `error`
+    field is non-null. Rows without errors are preserved unchanged and in
+    order; the file is atomically replaced only after all retries finish.
+
+    Phase-1 failures (error == "phase1_error") are left alone: there is no
+    model response to judge.
+    """
+    if not out_path.exists():
+        print(f"[{model_id}] no classification file at {out_path}; nothing to retry")
+        return
+
+    with out_path.open(encoding="utf-8") as f:
+        existing = [json.loads(line) for line in f if line.strip()]
+
+    resp_idx = {(r["probe_id"], r["lang"]): r for r in responses}
+    to_retry = [rec for rec in existing
+                if rec.get("error") and rec["error"] != "phase1_error"]
+    if not to_retry:
+        print(f"[{model_id}] no error rows to retry ({len(existing)} rows clean)")
+        return
+
+    print(f"\n[{model_id}] retrying {len(to_retry)} error rows "
+          f"of {len(existing)} total")
+
+    changes: list[tuple[str, str, str, str]] = []
+    fixed: list[dict] = []
+    for rec in tqdm(existing, desc=f"{model_id} (retry)", ncols=80):
+        if not (rec.get("error") and rec["error"] != "phase1_error"):
+            fixed.append(rec)
+            continue
+        src = resp_idx.get((rec["probe_id"], rec["lang"]))
+        if src is None or src.get("error"):
+            fixed.append(rec)
+            continue
+        label_rec = classify_one(
+            client,
+            judge_model=judge_cfg["model"],
+            lang=src["lang"],
+            prompt=src.get("prompt_text", ""),
+            response=src["response"],
+            max_tokens=judge_cfg["max_tokens"],
         )
-        text = resp.content[0].text
-        label, reason = parse_label(text)
-        return {
-            "label": label,
-            "reason": reason,
-            "judge_model": judge_model,
-            "judge_version": JUDGE_VERSION,
-            "latency_s": round(time.time() - start, 2),
-            "error": None,
+        new_rec = {
+            "probe_id": rec["probe_id"],
+            "category": rec.get("category", ""),
+            "lang": rec["lang"],
+            "model_id": model_id,
+            **label_rec,
         }
-    except Exception as e:
-        return {
-            "label": "unclear",
-            "reason": "",
-            "judge_model": judge_model,
-            "judge_version": JUDGE_VERSION,
-            "latency_s": round(time.time() - start, 2),
-            "error": str(e),
-        }
+        # Always take the fresh record: on success it carries a real
+        # judgment; on failure it carries the accurate current error
+        # (e.g. judge_api_refusal) instead of the stale original one.
+        if label_rec["error"] is None:
+            changes.append((rec["probe_id"], rec["lang"],
+                            rec["label"], label_rec["label"]))
+        fixed.append(new_rec)
+
+    tmp_path = out_path.with_suffix(".jsonl.tmp")
+    with tmp_path.open("w", encoding="utf-8") as f:
+        for rec in fixed:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    tmp_path.replace(out_path)
+
+    print(f"[{model_id}] re-judged {len(changes)}/{len(to_retry)} error rows:")
+    for probe_id, lang, old, new in changes:
+        marker = "  (label changed)" if old != new else ""
+        print(f"    {probe_id} [{lang}] {old} -> {new}{marker}")
 
 
 def main() -> None:
@@ -158,9 +375,26 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--model", help="run only this model id")
     parser.add_argument("--limit", type=int, help="cap rows per model")
+    parser.add_argument("--retry-errors", action="store_true",
+        help="re-judge rows whose existing classification has a non-null error "
+             "field (failed API calls); other rows are kept byte-identical")
+    parser.add_argument("--export-judge-refusals", metavar="CSV",
+        help="write every row the judge API refused to process to CSV for "
+             "native-author manual labeling (local-only; includes raw text)")
+    parser.add_argument("--merge-human", metavar="CSV",
+        help="merge filled human_label values from CSV back into the "
+             "classification files (labeler recorded as human:native-author)")
     args = parser.parse_args()
 
     cfg = load_config()
+
+    if args.export_judge_refusals:
+        export_judge_refusals(cfg, Path(args.export_judge_refusals))
+        return
+
+    if args.merge_human:
+        merge_human_labels(cfg, Path(args.merge_human))
+        return
 
     if not os.getenv("ANTHROPIC_API_KEY"):
         print("ERROR: ANTHROPIC_API_KEY not set in environment.")
@@ -201,6 +435,10 @@ def main() -> None:
         done = already_done(out_path)
         with in_path.open(encoding="utf-8") as f:
             responses = [json.loads(line) for line in f if line.strip()]
+
+        if args.retry_errors:
+            retry_error_rows(out_path, responses, client, judge_cfg, model_id)
+            continue
 
         todo = [r for r in responses if (r["probe_id"], r["lang"]) not in done]
         if args.limit:
