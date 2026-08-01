@@ -65,7 +65,10 @@ spot_check:
 
 # --- Statistics ---
 stats:
-  bootstrap_resamples: 500
+  # 10k resamples: standard practice, computationally free at n=100.
+  # (v1 used 500; changed for the journal revision together with paired
+  # resampling — see src/04_analyze.py docstring.)
+  bootstrap_resamples: 10000
   bootstrap_seed: 0
   confidence_level: 0.95
 
