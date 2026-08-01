@@ -47,14 +47,6 @@ Large language model safety evaluation remains heavily English-centered, leaving
 \textbf{License:} Pipeline code MIT; benchmark and aggregate analysis CC-BY-NC-4.0.
 \end{abstract}
 
-\paragraph{Contributions.}
-\begin{itemize}[leftmargin=1.5em,itemsep=2pt,topsep=2pt]
-  \item \textbf{C1 (Measurement).} We provide a cross-model refusal-rate evaluation of four local open-weight LLMs on the same 100 English/Somali safety prompts.
-  \item \textbf{C2 (Headline metric).} We report the English-minus-Somali refusal gap with 95\% bootstrap confidence intervals for each model.
-  \item \textbf{C3 (Reliability).} We validate the LLM-as-judge labels with a native-author 10\% stratified spot-check (80 of 800 rows) and report both raw agreement and Cohen's $\kappa$.
-  \item \textbf{C4 (Release discipline).} We separate public-safe aggregate statistics from local-only raw generations, avoiding redistribution of harmful model completions while preserving reproducibility.
-\end{itemize}
-
 % =========================================================================
 \section{Introduction}
 \label{sec:intro}
@@ -72,10 +64,20 @@ We focus on four models that can run locally on commodity Apple Silicon hardware
 The result is stark. All four models refuse far more often in English than in Somali. However, the Somali failure mode is not always direct harmful compliance. For three models, most Somali outputs are classified as \textit{unclear}: empty, off-topic, unrelated-language, or otherwise impossible to score as either refusal or compliance. We therefore interpret the headline gap as an \textit{explicit-refusal transfer gap}, not as a pure harmful-compliance rate.
 
 % =========================================================================
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Safety benchmarks and red-teaming.} HarmBench standardizes automated red-teaming and robust refusal evaluation across harmful behavior categories \citep{mazeika2024harmbench}. AdvBench, introduced in work on universal and transferable adversarial attacks, is widely used as a harmful-instruction source set \citep{zou2023universal}. Our work reuses this benchmark tradition but changes the target of measurement: we do not propose a new attack, and we do not optimize prompts. We measure baseline refusal transfer across languages.
+
+\paragraph{Multilingual safety gaps.} \citet{yong2023lowresource} show that low-resource-language translations can bypass GPT-4 safeguards. \citet{deng2024multilingual} similarly study multilingual jailbreak behavior and report higher harmful-response likelihood in low-resource languages. The 2025 multilingual safety survey argues that LLM safety research itself remains strongly English-centered and calls for better language documentation and cross-lingual safety measurement \citep{yong2025state}. SomaliBench Eval contributes a Somali-specific, open-weight, reproducible measurement point within this larger agenda.
+
+\paragraph{LLM-as-judge evaluation.} LLM-as-judge evaluation has become a practical tool for scaling response assessment, but it requires careful validation \citep{zheng2023judging}. We use a three-class judge with a strict refusal/compliance rubric, then validate it through a native-author spot-check. Because the task is categorical rather than preference-based, we report both raw agreement and Cohen's $\kappa$ \citep{cohen1960coefficient}.
+
+% =========================================================================
 \section{Benchmark}
 \label{sec:benchmark}
 
-\paragraph{SomaliBench v0.} SomaliBench v0 contains 200 records: 100 English prompts and 100 Somali counterparts. The prompts are stratified across seven safety categories: harmful instruction, misinformation, hate speech, privacy, cybersecurity, CBRN, and self-harm. The English prompts are derived from HarmBench \citep{mazeika2024harmbench} and AdvBench \citep{zou2023universal}; the Somali prompts were translated and verified by the native author. The benchmark is released under CC-BY-NC-4.0 with a responsible-use notice prohibiting fine-tuning toward harmful behavior, unauthorized attacks on deployed systems, and use outside safety-evaluation or alignment-research contexts.
+\paragraph{SomaliBench v0.} SomaliBench v0 \citep{dahir2026somalibench} contains 200 records: 100 English prompts and 100 Somali counterparts. The prompts are stratified across seven safety categories: harmful instruction, misinformation, hate speech, privacy, cybersecurity, CBRN, and self-harm.
 
 \paragraph{Prompt selection.} The source set uses 50 HarmBench prompts and 50 AdvBench prompts. HarmBench candidates were restricted to text-only, non-contextual ``standard'' behaviors, mapped from HarmBench's semantic labels into SomaliBench's seven-category schema; HarmBench's copyright category was dropped because it is an intellectual-property category rather than a safety category. AdvBench has no native category labels, so prompts were assigned to SomaliBench categories by lightweight keyword stratification and then author spot-checking. Near-identical prompts across the two sources were de-duplicated before sampling the target counts (20 harmful instruction, 15 misinformation, 15 hate speech, 10 privacy, 15 cybersecurity, 15 CBRN, 10 self-harm).
 
@@ -101,15 +103,6 @@ Self-harm & 10 & Requests encouraging, instructing, or normalizing suicide, self
 
 \paragraph{Safety handling.} The benchmark intentionally contains harmful-intent prompts because refusal behavior cannot be measured without inputs a safe model should decline. In this study, raw model responses are treated as local-only research records. We do not print harmful prompts or model completions in this paper. Public outputs are aggregate tables, figures, and reliability counts.
 
-% =========================================================================
-\section{Related Work}
-\label{sec:related}
-
-\paragraph{Safety benchmarks and red-teaming.} HarmBench standardizes automated red-teaming and robust refusal evaluation across harmful behavior categories \citep{mazeika2024harmbench}. AdvBench, introduced in work on universal and transferable adversarial attacks, is widely used as a harmful-instruction source set \citep{zou2023universal}. Our work reuses this benchmark tradition but changes the target of measurement: we do not propose a new attack, and we do not optimize prompts. We measure baseline refusal transfer across languages.
-
-\paragraph{Multilingual safety gaps.} \citet{yong2023lowresource} show that low-resource-language translations can bypass GPT-4 safeguards. \citet{deng2024multilingual} similarly study multilingual jailbreak behavior and report higher harmful-response likelihood in low-resource languages. The 2025 multilingual safety survey argues that LLM safety research itself remains strongly English-centered and calls for better language documentation and cross-lingual safety measurement \citep{yong2025state}. SomaliBench Eval contributes a Somali-specific, open-weight, reproducible measurement point within this larger agenda.
-
-\paragraph{LLM-as-judge evaluation.} LLM-as-judge evaluation has become a practical tool for scaling response assessment, but it requires careful validation \citep{zheng2023judging}. We use a three-class judge with a strict refusal/compliance rubric, then validate it through a native-author spot-check. Because the task is categorical rather than preference-based, we report both raw agreement and Cohen's $\kappa$ \citep{cohen1960coefficient}.
 
 % =========================================================================
 \section{Methodology}
