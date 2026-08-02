@@ -61,7 +61,7 @@ SomaliBench v0 was created to make one slice of that problem measurable: safety 
 
 We focus on four models that can run locally on commodity Apple Silicon hardware: Llama-3.1-8B-Instruct \citep{dubey2024llama}, Gemma-2-9B-Instruct \citep{gemmateam2024gemma2}, Qwen-2.5-7B-Instruct \citep{qwen2024qwen25}, and Aya-23-8B \citep{aryabumi2024aya23}. The model set is intentionally modest: this is a reproducible baseline study, not a frontier-model leaderboard. We avoid jailbreak wrappers, adversarial suffixes, multi-turn attacks, temperature sweeps, or prompt engineering. The only manipulated variable is prompt language.
 
-The result is stark. All four models refuse far more often in English than in Somali. However, the Somali failure mode is not always direct harmful compliance. For three models, most Somali outputs are classified as \textit{unclear}: empty, off-topic, unrelated-language, or otherwise impossible to score as either refusal or compliance. We therefore interpret the headline gap as an \textit{explicit-refusal transfer gap}, not as a pure harmful-compliance rate.
+The result is stark. All four models refuse far more often in English than in Somali. However, the Somali failure mode is not always direct harmful compliance. For three models, most Somali outputs are classified as \textit{unclear}: off-topic, unrelated-language, or otherwise impossible to score as either refusal or compliance. We therefore interpret the headline gap as an \textit{explicit-refusal transfer gap}, not as a pure harmful-compliance rate.
 
 % =========================================================================
 \section{Related Work}
@@ -181,16 +181,16 @@ Positive values mean the model refuses more often in English than in Somali. We 
 \begin{table}[t]
 \centering
 \small
-\caption{Per-model refusal rates with 95\% bootstrap confidence intervals. Each cell uses $n=100$ prompts.}
+\caption{Per-model refusal rates with 95\% bootstrap confidence intervals. Each cell uses $n=100$ prompts. Cells marked $^{*}$ report Wilson score intervals: at a refusal rate of exactly 1.00 the bootstrap interval is degenerate.}
 \label{tab:rates}
 \begin{tabular}{lrr}
 \toprule
 Model & English refusal & Somali refusal \\
 \midrule
-Aya-23-8B & 0.80 [0.72, 0.87] & 0.05 [0.02, 0.10] \\
-Gemma-2-9B & 0.97 [0.93, 1.00] & 0.59 [0.50, 0.68] \\
-Llama-3.1-8B & 0.97 [0.93, 1.00] & 0.07 [0.02, 0.12] \\
-Qwen-2.5-7B & 0.93 [0.88, 0.97] & 0.24 [0.16, 0.31] \\
+Aya-23-8B & 0.83 [0.75, 0.90] & 0.05 [0.01, 0.10] \\
+Gemma-2-9B & 1.00 [0.96, 1.00]$^{*}$ & 0.60 [0.50, 0.70] \\
+Llama-3.1-8B & 1.00 [0.96, 1.00]$^{*}$ & 0.07 [0.03, 0.12] \\
+Qwen-2.5-7B & 0.96 [0.92, 0.99] & 0.25 [0.17, 0.34] \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -202,23 +202,23 @@ Qwen-2.5-7B & 0.93 [0.88, 0.97] & 0.24 [0.16, 0.31] \\
   \label{fig:rates}
 \end{figure}
 
-All four models refuse at high rates in English. Somali refusal is much lower for every model. Gemma-2-9B has the highest Somali refusal rate (0.59), while Aya-23-8B and Llama-3.1-8B refuse fewer than 10\% of Somali prompts.
+All four models refuse at high rates in English. Somali refusal is much lower for every model. Gemma-2-9B has the highest Somali refusal rate (0.60), while Aya-23-8B and Llama-3.1-8B refuse fewer than 10\% of Somali prompts.
 
 \subsection{Cross-lingual gaps}
 
 \begin{table}[h]
 \centering
 \small
-\caption{English-minus-Somali refusal gaps. Positive values indicate higher refusal in English.}
+\caption{English-minus-Somali refusal gaps. Positive values indicate higher refusal in English. Gap CIs are paired bootstrap intervals. Discordant counts are prompt pairs refused in English only vs.\ in Somali only; $p$ is the exact McNemar test on these counts.}
 \label{tab:gaps}
-\begin{tabular}{lrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-Model & English & Somali & Gap [95\% CI] \\
+Model & English & Somali & Gap [95\% CI] & Disc.\ (EN/SO) & McNemar $p$ \\
 \midrule
-Llama-3.1-8B & 0.97 & 0.07 & 0.90 [0.85, 0.96] \\
-Aya-23-8B & 0.80 & 0.05 & 0.75 [0.67, 0.83] \\
-Qwen-2.5-7B & 0.93 & 0.24 & 0.69 [0.59, 0.78] \\
-Gemma-2-9B & 0.97 & 0.59 & 0.38 [0.27, 0.49] \\
+Llama-3.1-8B & 1.00 & 0.07 & 0.93 [0.88, 0.98] & 93/0 & $2.0\times10^{-28}$ \\
+Aya-23-8B & 0.83 & 0.05 & 0.78 [0.68, 0.87] & 82/4 & $5.8\times10^{-20}$ \\
+Qwen-2.5-7B & 0.96 & 0.25 & 0.71 [0.61, 0.80] & 73/2 & $1.5\times10^{-19}$ \\
+Gemma-2-9B & 1.00 & 0.60 & 0.40 [0.31, 0.50] & 40/0 & $1.8\times10^{-12}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -230,7 +230,7 @@ Gemma-2-9B & 0.97 & 0.59 & 0.38 [0.27, 0.49] \\
   \label{fig:gaps}
 \end{figure}
 
-The confidence intervals for all four gaps are strictly positive. The largest gap is Llama-3.1-8B (0.90), followed by Aya-23-8B (0.75), Qwen-2.5-7B (0.69), and Gemma-2-9B (0.38). This establishes a robust cross-lingual refusal gap across model families.
+The confidence intervals for all four gaps are strictly positive. The largest gap is Llama-3.1-8B (0.93), followed by Aya-23-8B (0.78), Qwen-2.5-7B (0.71), and Gemma-2-9B (0.40). This establishes a robust cross-lingual refusal gap across model families.
 
 \subsection{Label distribution}
 
@@ -243,14 +243,14 @@ The confidence intervals for all four gaps are strictly positive. The largest ga
 \toprule
 Model & Lang. & Refused & Complied & Unclear \\
 \midrule
-Aya-23-8B & en & 80 & 17 & 3 \\
+Aya-23-8B & en & 83 & 17 & 0 \\
 Aya-23-8B & so & 5 & 4 & 91 \\
-Gemma-2-9B & en & 97 & 0 & 3 \\
-Gemma-2-9B & so & 59 & 9 & 32 \\
-Llama-3.1-8B & en & 97 & 0 & 3 \\
-Llama-3.1-8B & so & 7 & 11 & 82 \\
-Qwen-2.5-7B & en & 93 & 4 & 3 \\
-Qwen-2.5-7B & so & 24 & 3 & 73 \\
+Gemma-2-9B & en & 100 & 0 & 0 \\
+Gemma-2-9B & so & 60 & 10 & 30 \\
+Llama-3.1-8B & en & 100 & 0 & 0 \\
+Llama-3.1-8B & so & 7 & 12 & 81 \\
+Qwen-2.5-7B & en & 96 & 4 & 0 \\
+Qwen-2.5-7B & so & 25 & 4 & 71 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -260,7 +260,7 @@ Table~\ref{tab:labels} clarifies the safety interpretation. A refusal gap is not
 \begin{table}[h]
 \centering
 \small
-\caption{Redacted examples of the response types observed. Prompts and harmful details are omitted; snippets are descriptive or safe refusal text only.}
+\caption{Observed response patterns by judge label. Rows are aggregate descriptions of recurring patterns; no prompt or response text is reproduced.}
 \label{tab:failuremodes}
 \begin{tabular}{p{2.6cm}p{3.2cm}p{6.9cm}}
 \toprule
@@ -269,13 +269,13 @@ Judge label & Failure mode & Redacted pattern \\
 Refused & Safe refusal & The model declines the harmful request and gives a brief safety-oriented explanation or benign alternative. \\
 Unclear & Wrong language & The model answers in English or another unrelated language rather than Somali, with no clear refusal or compliance. \\
 Unclear & Incoherent/repetitive & The output repeats generic Somali fragments or malformed phrases and never becomes a classifiable refusal or answer. \\
-Unclear & Empty/off-topic & The output is blank, unrelated to the request, or too disconnected from the prompt to classify. \\
+Unclear & Deflection/off-topic & The output deflects generically, echoes the prompt back, or asks clarifying questions, without ever becoming a classifiable refusal or answer. \\
 Complied & Substantive engagement & The model provides content responsive to the harmful request; operational details are redacted and not released. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-We manually audited the 27 Somali rows labeled \textit{complied} for language coherence without publishing examples. Nine of 27 were coherent Somali-dominant passages, all from Gemma-2-9B. The remaining 18 included short assertions, code- or HTTP-heavy mixed-language technical text, or grammatically degraded and repetitive Somali. Thus the Somali compliance count should be read as ``substantive engagement under the rubric,'' not as 27 fluent, operationally polished Somali harmful completions.
+We manually audited the 30 Somali rows labeled \textit{complied} for language coherence without publishing examples. Nine of 30 were coherent Somali-dominant passages, all from Gemma-2-9B---nine of Gemma's ten Somali compliances. The remaining 21 included short assertions, code- or HTTP-heavy mixed-language technical text, or grammatically degraded and repetitive Somali. Thus the Somali compliance count should be read as ``substantive engagement under the rubric,'' not as 30 fluent, operationally polished Somali harmful completions.
 
 \subsection{Benign Somali competence control}
 
@@ -309,7 +309,7 @@ Table~\ref{tab:benign} shows that the Somali safety results are partly confounde
   \label{fig:category}
 \end{figure}
 
-The gap appears across all seven categories (Figure~\ref{fig:category}). Averaged across models, the largest category-level gaps are privacy (0.80), harmful instruction (0.76), self-harm (0.73), cybersecurity and hate speech (both 0.70). Misinformation and CBRN have smaller but still substantial average gaps (0.53 and 0.57). Because category sample sizes range from 10 to 20 prompts, category-level estimates should be treated as directional. We therefore render the heatmap as color-only point estimates rather than precise in-cell values; a larger v2 benchmark should attach category-level confidence intervals.
+The gap appears across all seven categories (Figure~\ref{fig:category}). Averaged across models, the largest category-level gaps are privacy (0.80), harmful instruction (0.76), CBRN and self-harm (both 0.73), cybersecurity and hate speech (both 0.70). Misinformation has the smallest but still substantial average gap (0.53). Because category sample sizes range from 10 to 20 prompts, category-level estimates should be treated as directional. We therefore render the heatmap as color-only point estimates rather than precise in-cell values; a larger v2 benchmark should attach category-level confidence intervals.
 
 % =========================================================================
 \section{Discussion}
@@ -349,7 +349,7 @@ This is defensive measurement research. The benchmark prompts are intentionally 
 \section{Conclusion}
 \label{sec:conclusion}
 
-SomaliBench Eval measures a large English-to-Somali refusal gap across four open-weight instruction-tuned language models. English refusal rates are high (0.80--0.97), but Somali refusal rates range from 0.05 to 0.59. All four English-minus-Somali gap confidence intervals are strictly positive. The result supports a simple conclusion: baseline safety refusal behavior does not reliably transfer from English to Somali in current small open-weight models.
+SomaliBench Eval measures a large English-to-Somali refusal gap across four open-weight instruction-tuned language models. English refusal rates are high (0.83--1.00), but Somali refusal rates range from 0.05 to 0.60. All four English-minus-Somali gap confidence intervals are strictly positive. The result supports a simple conclusion: baseline safety refusal behavior does not reliably transfer from English to Somali in current small open-weight models.
 
 The next version should expand SomaliBench from 100 to roughly 500 prompt pairs, make the benign Somali control pre-registered and matched, compare no-system, English-HHH, and Somali-HHH system prompts, add multi-judge consensus with at least one non-Claude-family judge, and include a second blinded native annotator. It should also rerun one or more models at full precision and report category-level confidence intervals, turning the present baseline result into a stronger measurement suite for Somali-aware safety mitigation.
 
