@@ -131,15 +131,7 @@ Aya-23-8B & \texttt{aya:8b} & F16 & Cohere 23-language multilingual comparator \
 
 \subsection{Inference}
 
-Each model receives every SomaliBench v0 record once. Generation settings are fixed for reproducibility:
-
-\begin{itemize}[leftmargin=1.5em,itemsep=2pt,topsep=2pt]
-  \item \textbf{Prompt set:} 100 English + 100 Somali prompts per model.
-  \item \textbf{System prompt:} English HHH prompt: ``You are a helpful, harmless, and honest assistant.''
-  \item \textbf{Decoding:} temperature 0.0, top-$p$ 1.0, one sample, maximum 512 generated tokens.
-  \item \textbf{Seed:} 0.
-  \item \textbf{Runtime:} local Ollama inference, resume-safe JSONL logging.
-\end{itemize}
+Each model receives every SomaliBench v0 record once---100 English and 100 Somali prompts---with the English HHH system prompt (``You are a helpful, harmless, and honest assistant.''). Generation settings are fixed for reproducibility. Decoding uses temperature 0, top-$p$ 1.0, one sample per prompt, a maximum of 512 generated tokens, and seed 0. Inference runs locally through Ollama with resume-safe JSONL logging.
 
 The full run yields 800 model responses.
 
@@ -157,15 +149,16 @@ Each response is classified into exactly one of three labels:
 
 Boundary cases are labeled conservatively. A safety disclaimer followed by substantive instructions is \textit{complied}. A refusal that includes only high-level benign alternatives or non-actionable safety context remains \textit{refused}. Hedged ``I cannot help, but here are general principles'' responses are labeled \textit{complied} only when the general principles are concrete enough to advance the harmful request; otherwise they are \textit{refused} or \textit{unclear}.
 
-We use the pinned Anthropic judge snapshot \texttt{claude-sonnet-4-5-20250929} with temperature 0 and a JSON-only output schema. Phase-1 inference errors, if any, are labeled \textit{unclear}; in the completed run there are 800 classifications. This single-judge design is inexpensive and reproducible, but it has the usual shared-prior risk of LLM-as-judge evaluation: the judge may encode safety heuristics that are not independent of the broader post-training ecosystem \citep{zheng2023judging}. We therefore treat the judge as a scalable first-pass classifier and validate it with native-author spot-checking rather than as an oracle. A v2 should add a second judge from a different model family on at least a subset.
+We use the pinned Anthropic judge snapshot \texttt{claude-sonnet-4-5-20250929} with temperature 0 and a JSON-only output schema. 34/800 rows (4.25\%) returned \texttt{stop\_reason: refusal} because the judge's safety layer declined the (prompt, response) pair. We routed these to native-author manual labeling: 12 EN refused, 2 SO refused, 3 SO complied, 17 SO unclear. These rows are recorded with \texttt{judge\_model = human:native-author} provenance. These hand-labeled rows are counted in the refusal rates in Tables~\ref{tab:rates} and~\ref{tab:gaps}. Six of these 34 rows fall in the spot-check sample. Separately, 4 transient API failures occurred and were resolved by clean retries. This single-judge design is inexpensive and reproducible, but it has the usual shared-prior risk of LLM-as-judge evaluation: the judge may encode safety heuristics that are not independent of the broader post-training ecosystem \citep{zheng2023judging}. We therefore treat the judge as a scalable first-pass classifier and validate it with native-author spot-checking rather than as an oracle. A v2 should add a second judge from a different model family on at least a subset.
+
 
 \subsection{Native-author spot-check}
 
-The native author labels a 10\% stratified random sample of the 800 classification rows ($n=80$), balanced across the seven safety categories. The review CSV includes the prompt text, model response, judge label, and judge reason; the author fills only \texttt{human\_label}. Agreement is computed on the three-class labels. This is a verification spot-check rather than a blinded independent annotation study.
+The native author labels a 10\% stratified random sample of the 800 classification rows ($n=80$), balanced across the seven safety categories. Six of the sampled rows are the hand-labeled ones, so they have no judge labels; agreement is therefore computed on $n=74$. The review CSV includes the prompt text, model response, judge label, and judge reason; the author fills only \texttt{human\_label}. Agreement is computed on the three-class labels. This is a verification spot-check rather than a blinded independent annotation study.
 
-The spot-check produced 100\% agreement: 41/41 \textit{refused}, 33/33 \textit{unclear}, and 6/6 \textit{complied}, for Cohen's $\kappa=1.00$.
+The spot-check produced 100\% agreement: 41/41 \textit{refused}, 27/27 \textit{unclear}, and 6/6 \textit{complied}, for Cohen's $\kappa=1.00$.
 
-The perfect agreement is not evidence that the validation protocol fully stress-tests the judge. It is a consequence of the label distribution and the separability of the observed outputs. The sampled refusals are typically short formulaic safety messages, the sampled \textit{unclear} rows are visually unambiguous empty, wrong-language, or incoherent outputs, and the six sampled compliances are rare but clear when present. In this dataset, the dominant Somali failure mode is incoherence rather than fluent borderline compliance. We would expect more disagreement in a setting with more partial, hedged, or mixed compliance; this motivates multi-judge validation and a second blinded native annotator in v2.
+The perfect agreement is not evidence that the validation protocol fully stress-tests the judge. It is a consequence of the label distribution and the separability of the observed outputs. The sampling was stratified by category only, so the label coverage in the sample was not controlled. The sampled refusals are typically short formulaic safety messages, the sampled \textit{unclear} rows are visually unambiguous wrong-language or incoherent outputs, and the six sampled compliances are rare but clear when present. In this dataset, the dominant Somali failure mode is incoherence rather than fluent borderline compliance. We would expect more disagreement in a setting with more partial, hedged, or mixed compliance; this motivates multi-judge validation and a second blinded native annotator in v2.
 
 \subsection{Statistics}
 
@@ -177,7 +170,7 @@ The cross-lingual refusal gap is:
 \begin{equation}
   G_m = R_{m,\mathrm{en}} - R_{m,\mathrm{so}}.
 \end{equation}
-Positive values mean the model refuses more often in English than in Somali. We compute 95\% percentile bootstrap confidence intervals with 500 resamples and seed 0, following the same convention as SomaliWeb v1 \citep{dahir2026somaliweb,efron1994introduction}. The \textit{unclear} label is not counted as refusal. We apply confidence intervals to the headline model-level rates and gaps; per-category estimates are exploratory and are not corrected for multiple comparisons.
+Positive values mean the model refuses more often in English than in Somali. We compute 95\% paired percentile bootstrap confidence intervals over prompt pairs matched by \texttt{probe\_id}, because the same 100 prompts appear in both languages; we use 10{,}000 resamples with per-group seeds derived from the master seed (0) \citep{efron1994introduction}. We apply an exact McNemar test to the discordant pairs, pairs where the prompt was refused in exactly one of the two languages. When a refusal rate is exactly 1.00, every bootstrap resample returns 1.00 and the interval collapses---the estimate is degenerate. So we report Wilson score intervals for those cells instead. The two 1.00 cells report $[0.96, 1.00]$. The \textit{unclear} label is not counted as refusal. We apply confidence intervals to the headline model-level rates and gaps; per-category estimates are exploratory and are not corrected for multiple comparisons.
 
 % =========================================================================
 \section{Results}
