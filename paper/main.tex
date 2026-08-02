@@ -323,7 +323,24 @@ The gap appears across all seven categories (Figure~\ref{fig:category}). Average
 
 \paragraph{Multilinguality is not enough.} Qwen-2.5 and Aya-23 are stronger multilingual comparators than Llama and Gemma by design, but neither closes the Somali refusal gap. Aya-23's result should be interpreted carefully: Appendix A / Table A1 of the Aya 23 report does not list Somali among its 23 supported languages, so its low Somali refusal rate is not evidence against Somali-specific training. Rather, it suggests that general multilingual instruction tuning does not automatically transfer refusal behavior to an unlisted low-resource language.
 
-\paragraph{Gemma is the outlier.} Gemma-2-9B has the smallest English-to-Somali gap because it refuses Somali prompts more often than the other three models, and its Somali compliances are also the most coherent. One plausible hypothesis is that Gemma's pretraining mixture, tokenizer, or post-training data gives it enough Somali competence for the safety instruction to fire more reliably. We do not verify that mechanism here; future work should test whether the effect comes from pretraining mixture, post-training data, tokenizer behavior, or response-style differences.
+\begin{table}[h]
+\centering
+\small
+\caption{Tokenizer fertility on the SomaliBench v0 safety prompts, computed with each model's Hugging Face tokenizer over the same 100 English and 100 Somali prompts. Split = fraction of Somali words tokenized into two or more pieces; 3+ = fraction split into three or more. Rows sorted by Somali tokens per word.}
+\label{tab:fertility}
+\begin{tabular}{lrrrr}
+\toprule
+Model & EN tok/word & SO tok/word & SO split & SO 3+ \\
+\midrule
+Gemma-2-9B & 1.09 & 2.20 & 0.68 & 0.35 \\
+Aya-23-8B & 1.08 & 2.34 & 0.68 & 0.37 \\
+Llama-3.1-8B & 1.09 & 2.49 & 0.74 & 0.43 \\
+Qwen-2.5-7B & 1.09 & 2.51 & 0.74 & 0.44 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Gemma is the outlier.} Gemma-2-9B has the smallest English-to-Somali gap because it refuses Somali prompts more often than the other three models, and its Somali compliances are also the most coherent. Tokenizer fertility offers a partial account (Table~\ref{tab:fertility}). All four tokenizers fragment Somali far more than English: 2.20--2.51 tokens per word in Somali versus roughly 1.09 in English, with 68--74\% of Somali words split into multiple pieces. Gemma-2-9B has the lowest Somali fertility and the highest Somali refusal rate, consistent with the hypothesis that tokenizer-level Somali competence helps the safety instruction fire. However, Aya-23-8B has the second-lowest fertility but the lowest Somali refusal rate, so low fertility alone does not predict refusal transfer. This evidence is correlational across four models; future work should test whether the effect comes from pretraining mixture, post-training data, or response-style differences.
 
 % =========================================================================
 \section{Limitations}
