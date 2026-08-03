@@ -347,17 +347,15 @@ Qwen-2.5-7B & 1.09 & 2.51 & 0.74 & 0.44 \\
 \section{Limitations}
 \label{sec:limitations}
 
-\begin{enumerate}[leftmargin=1.5em,itemsep=2pt,topsep=2pt]
-  \item \textbf{Small benchmark size.} SomaliBench v0 has 100 prompt pairs. This is enough to detect large gaps but too small for fine-grained category claims.
-  \item \textbf{Post-hoc benign control.} The benign Somali control is useful for interpretation, but it is smaller than a full benchmark and was labeled by the same native author rather than a second blinded annotator. A v2 should make this a pre-registered matched control with confidence intervals.
-  \item \textbf{English HHH system prompt.} The system prompt is an English safety instruction, not a neutral or translated prompt. The reported numbers are conditioned on this deployment choice.
-  \item \textbf{Single judge.} We use one LLM judge and one native-author verification spot-check. Multi-judge comparison and a second blinded human annotator are natural v2 extensions.
-  \item \textbf{Ollama tags, not full precision upstream weights.} The study targets reproducible local evaluation. Three of the four local model builds are quantized (Table~\ref{tab:models}); quantization and serving templates may affect absolute rates and could affect safety behavior asymmetrically. A v2 should rerun at least one model through full-precision \texttt{transformers} or vLLM weights to bound this effect.
-  \item \textbf{No severity scoring.} A \textit{complied} label means substantive response to a harmful request; it does not rank severity or operational usefulness.
-  \item \textbf{No jailbreak variants.} We test baseline prompts only. The results do not estimate robustness under adversarial wrappers, suffixes, or multi-turn attacks.
-  \item \textbf{Raw generations are not public.} This protects against redistributing harmful completions but means third parties cannot fully audit every response without rerunning the pipeline.
-\end{enumerate}
+SomaliBench v0 contains 100 prompt pairs, with categories of 10--20 prompts each. This is sufficient to detect large model-level gaps but caps category-level claims at directional estimates. The headline model-level gaps are unaffected: all four paired CIs are strictly positive.
 
+A single person---the author---serves as translator of the Somali prompts, spot-check validator, and manual labeler of the 34 judge-declined rows. Because the validator and translator share the same priors, the spot-check is a consistency check rather than an independent verification. The single-judge design compounds this: no second model family checks the labels. The perfect agreement should therefore be read as evidence the observed outputs were easily separable, not as independent validation of the judge. The benign control was added post-hoc, and its 200 rows were labeled by the same single author. It is smaller than a full benchmark and carries no confidence intervals; v2 should make it a pre-registered matched control. These limits share the same remedy: a second blinded native annotator and a second judge from a different model family, planned for v2.
+
+Aya-23-8B ran at F16 while the other three models ran Q4 quantizations, so cross-model comparisons ride on different serving conditions, not weights alone. Separately, the 512-token generation cap could truncate responses, and \texttt{done\_reason} was not logged, so silent truncations are uncounted. Within a model, serving is identical for both languages, but quantization may degrade Somali generation more than English, which would inflate the measured gap; the v2 full-precision rerun would bound this.
+
+The English HHH system prompt is an explicit safety cue presented in English for both languages. The measured gap therefore includes any conditioning mismatch between the English cue and Somali generation, whose direction is unknown without the v2 comparison of no-system, English-HHH, and Somali-HHH prompts. Somali refusal under an explicit English safety cue is, in that limited sense, a conservative measurement.
+
+No severity scoring exists, so a \textit{complied} label does not rank how harmful or useful the response was. We test baseline prompts only, so results say nothing about robustness under adversarial wrappers or multi-turn attacks. The raw generations stay local-only to protect against redistributing harmful completions, but third parties must rerun the pipeline to audit individual responses.
 % =========================================================================
 \section*{Ethical Considerations}
 
