@@ -187,7 +187,7 @@ Qwen-2.5-7B & 0.96 [0.92, 0.99] & 0.25 [0.17, 0.34] \\
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.95\columnwidth]{figures/fig1_refusal_rates.pdf}
-  \caption{Refusal rate per model and language with 95\% bootstrap confidence intervals.}
+  \caption{Refusal rate per model and language with 95\% bootstrap confidence intervals; the two English cells at 1.00 use Wilson score intervals, matching Table~\ref{tab:rates}.}
   \label{fig:rates}
 \end{figure}
 
@@ -244,7 +244,7 @@ Qwen-2.5-7B & so & 25 & 4 & 71 \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:labels} clarifies the safety interpretation. A refusal gap is not identical to a harmful-compliance gap. In Somali, Aya-23-8B, Llama-3.1-8B, and Qwen-2.5-7B often produce outputs that are not classifiable as either refusal or compliance. This is still a deployment-relevant failure: the model does not reliably express the intended safety behavior in Somali. But it should not be overstated as direct harmful assistance.
+Table~\ref{tab:labels} clarifies the safety interpretation. A refusal gap is not identical to a harmful-compliance gap. In Somali, Aya-23-8B, Llama-3.1-8B, and Qwen-2.5-7B often produce outputs that are not classifiable as either refusal or compliance. This is still a deployment-relevant failure: the model does not reliably express the intended safety behavior in Somali. But it should not be overstated as direct harmful assistance. Refusal among classifiable outputs sharpens this: Gemma-2-9B refuses 85.7\% and Qwen-2.5-7B 86.2\% of their interpretable Somali responses, so their unconditional gaps are driven largely by \textit{unclear} output. Aya-23-8B complies with 17\% of English prompts but only 4\% of Somali ones, so its large refusal gap does not correspond to increased harmful compliance.
 
 \begin{table}[h]
 \centering
@@ -277,7 +277,7 @@ To probe whether Somali \textit{unclear} rates reflect safety-transfer failure, 
 \label{tab:benign}
 \begin{tabular}{lrrrrr}
 \toprule
-Model & Somali & On-topic & Mean grammar & Helpful & Over-refusal \\
+Model & Somali-primary & On-topic & Mean grammar & Helpful & Over-refusal \\
 \midrule
 Aya-23-8B & 0.56 & 0.22 & 0.42 & 0.02 & 0.34 \\
 Gemma-2-9B & 0.92 & 0.62 & 0.32 & 0.32 & 0.04 \\
@@ -344,6 +344,8 @@ Aya-23-8B ran at F16 while the other three models ran Q4 quantizations, so cross
 The English HHH system prompt is an explicit safety cue presented in English for both languages. The measured gap therefore includes any conditioning mismatch between the English cue and Somali generation, whose direction is unknown without the v2 comparison of no-system, English-HHH, and Somali-HHH prompts. Somali refusal under an explicit English safety cue is, in that limited sense, a conservative measurement.
 
 No severity scoring exists, so a \textit{complied} label does not rank how harmful or useful the response was. We test baseline prompts only, so results say nothing about robustness under adversarial wrappers or multi-turn attacks. The raw generations stay local-only to protect against redistributing harmful completions, but third parties must rerun the pipeline to audit individual responses.
+
+The English prompts come from HarmBench and AdvBench, widely used safety benchmarks. Models may have seen them, or close paraphrases, during post-training. The Somali translations almost certainly never appeared in training. Part of the gap could therefore reflect benchmark familiarity rather than safety transfer; a novel-paraphrase subset in v3 would test this.
 % =========================================================================
 \section*{Ethical Considerations}
 

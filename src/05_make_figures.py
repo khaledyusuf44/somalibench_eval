@@ -38,8 +38,16 @@ def fig_refusal_rates(rate_df: pd.DataFrame, out_path: Path) -> None:
     x = np.arange(len(models))
     width = 0.35
 
-    en = rate_df[rate_df["lang"] == "en"].set_index("model_id").loc[models]
-    so = rate_df[rate_df["lang"] == "so"].set_index("model_id").loc[models]
+    en = rate_df[rate_df["lang"] == "en"].set_index("model_id").loc[models].copy()
+    so = rate_df[rate_df["lang"] == "so"].set_index("model_id").loc[models].copy()
+
+    # At rate == 1.0 the bootstrap interval is degenerate ([1.0, 1.0]);
+    # substitute the Wilson interval so the plot matches the rates table.
+    for df_ in (en, so):
+        if "wilson_low" in df_.columns:
+            at_one = df_["refusal_rate"] >= 1.0
+            df_.loc[at_one, "ci_low"] = df_.loc[at_one, "wilson_low"]
+            df_.loc[at_one, "ci_high"] = df_.loc[at_one, "wilson_high"]
 
     fig, ax = plt.subplots(figsize=(8, 4.5))
     ax.bar(x - width/2, en["refusal_rate"], width, label="English",
