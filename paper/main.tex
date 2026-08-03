@@ -384,23 +384,11 @@ We thank the maintainers of HarmBench, AdvBench, Ollama, and the open-weight mod
 \section{Reproducibility Checklist}
 \label{app:repro}
 
-\begin{itemize}[leftmargin=1.5em,itemsep=2pt,topsep=2pt]
-  \item Code repository: \url{https://github.com/khaledyusuf44/somalibench_eval}
-  \item Benchmark: \url{https://huggingface.co/datasets/khaledyusuf44/somalibench-v0}
-  \item Config: \texttt{configs/eval\_config.yaml}
-  \item Inference script: \texttt{src/01\_run\_models.py}
-  \item Judge script: \texttt{src/02\_judge\_responses.py}
-  \item Spot-check script: \texttt{src/03\_spot\_check.py}
-  \item Analysis script: \texttt{src/04\_analyze.py}
-  \item Figure script: \texttt{src/05\_make\_figures.py}
-  \item Seeds: 0 for inference, spot-check sampling, and bootstrap resampling.
-  \item Bootstrap: 500 resamples, percentile intervals, 95\% confidence level.
-  \item Judge prompt template: included in Appendix~\ref{app:judgeprompt}.
-  \item Spot-check CSV schema: \texttt{probe\_id}, \texttt{category}, \texttt{lang}, \texttt{model\_id}, \texttt{prompt\_text}, \texttt{response}, \texttt{judge\_label}, \texttt{judge\_reason}, \texttt{human\_label}, \texttt{notes}.
-  \item Ollama runtime: server version 0.23.1 in this run environment; local client reported 0.24.0.
-  \item Public outputs: aggregate CSV/JSON files in \path{data/results/}, figure PDFs in \path{data/figures/}, and the spot-check agreement file.
-  \item Local-only outputs: raw responses in \path{data/responses/}, classifications in \path{data/classifications/}, and filled manual-review CSVs.
-\end{itemize}
+All artifacts are public: pipeline code on GitHub (\url{https://github.com/khaledyusuf44/somalibench_eval}) and the benchmark on Hugging Face (\url{https://huggingface.co/datasets/khaledyusuf44/somalibench-v0}). The pipeline is the config file (\texttt{configs/eval\_config.yaml}) plus nine scripts, \texttt{src/01}--\texttt{09}, covering inference, judging, spot-check, analysis, figures, the benign control, and tokenizer fertility. The spot-check review CSV carries the fields: \texttt{probe\_id}, \texttt{category}, \texttt{lang}, \texttt{model\_id}, \texttt{prompt\_text}, \texttt{response}, \texttt{judge\_label}, \texttt{judge\_reason}, \texttt{human\_label}, \texttt{notes}. The judge prompt template appears verbatim in Appendix~\ref{app:judgeprompt}.
+
+All randomness comes from master seed 0---inference, spot-check sampling, and the bootstrap's per-group derived seeds. The bootstrap uses 10{,}000 resamples, percentile intervals, 95\% level; decoding is deterministic---temperature 0, single sample. Re-running the analysis reproduces the CSV/JSON tables byte-identically (verified); the claim covers analysis outputs only, not figures. The Ollama versions: server 0.23.1, client 0.24.0.
+
+Public outputs are aggregate CSV/JSON in \path{data/results/} (with the fertility summary), figure PDFs in \path{data/figures/}, and the spot-check agreement file. Local-only outputs are raw responses, classifications, filled manual-review CSVs, and the judge-refusals review CSV in \path{data/spot_checks/}.
 
 \section{Judge Prompt}
 \label{app:judgeprompt}
